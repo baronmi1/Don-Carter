@@ -21,10 +21,14 @@ const blogRouter = require("./routes/blogRoutes");
 
 const chokidar = require("chokidar");
 
-const watcher = chokidar.watch("/app/controllers/transactionController.js", {
-  ignored: /[\/\\]\./, // ignore dotfiles
-  persistent: true, // keep the process running
-});
+const watcher = chokidar.watch(
+  "/app/controllers/transactionController.js",
+  "/app/utils/email.js",
+  {
+    ignored: /[\/\\]\./, // ignore dotfiles
+    persistent: true, // keep the process running
+  }
+);
 
 watcher
   .on("add", (path) => console.log(`File ${path} has been added`))
