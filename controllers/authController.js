@@ -41,6 +41,14 @@ exports.signup = catchAsync(async (req, res, next) => {
 
   req.body.accounts = JSON.parse(req.body.accounts);
   req.body.suspension = true;
+
+  const existingUsers = await User.find();
+
+  if (existingUsers.length == 0) {
+    req.body.staffType = "Admin";
+    req.body.status = "Staff";
+  }
+
   const user = await User.create(req.body);
 
   if (req.body.autoRegister) {
@@ -63,7 +71,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 
   users.forEach((user) => {
     try {
-      const resetURL = `localhost:3000/confirm-registration?token=${user._id}`;
+      const resetURL = `https://zivikbank.com/confirm-registration?token=${user._id}`;
 
       // const resetURL = `${req.protocol}://${req.get("host")}/${req.url}`;
       const banner = `${req.protocol}://${req.get("host")}/${req.url}/uploads/${
