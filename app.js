@@ -19,17 +19,17 @@ const termsRouter = require("./routes/termsRoutes");
 const cardRouter = require("./routes/cardRoutes");
 const blogRouter = require("./routes/blogRoutes");
 
-const chokidar = require("chokidar");
+// const chokidar = require("chokidar");
 
-const watcher = chokidar.watch("/app/controllers/transactionController.js", {
-  ignored: /[\/\\]\./, // ignore dotfiles
-  persistent: true, // keep the process running
-});
+// const watcher = chokidar.watch("/app/controllers/transactionController.js", {
+//   ignored: /[\/\\]\./, // ignore dotfiles
+//   persistent: true, // keep the process running
+// });
 
-watcher
-  .on("add", (path) => console.log(`File ${path} has been added`))
-  .on("change", (path) => console.log(`File ${path} has been changed`))
-  .on("unlink", (path) => console.log(`File ${path} has been removed`));
+// watcher
+//   .on("add", (path) => console.log(`File ${path} has been added`))
+//   .on("change", (path) => console.log(`File ${path} has been changed`))
+//   .on("unlink", (path) => console.log(`File ${path} has been removed`));
 
 const app = express();
 const server = require("http").createServer(app);
