@@ -4,7 +4,7 @@ const accountSchema = new mongoose.Schema({
   userId: String,
   totalBalance: Number,
   accounts: Array,
-
+  currency: String,
   dateCreated: {
     type: Number,
     default: new Date().getTime(),

@@ -2,6 +2,8 @@ const Transaction = require("../models/transactionModel");
 const Currency = require("../models/currencyModel");
 const AppError = require("../utils/appError");
 const User = require("../models/userModel");
+const Account = require("../models/accountsModel");
+const Email = require("../controllers/emailController");
 const Notification = require("../models/notificationModel");
 const notificationController = require("../controllers/notificationController");
 const APIFeatures = require("../utils/apiFeatures");
@@ -10,16 +12,24 @@ const catchAsync = require("../utils/catchAsync");
 exports.createTransaction = catchAsync(async (req, res, next) => {
   const allowedFields = req.body;
 
-  allowedFields.account = JSON.parse(allowedFields.account);
+  allowedFields.account = allowedFields.account;
 
   if (allowedFields.setPin) {
-    await User.updateOne(
-      { username: allowedFields.username },
+    const user = await User.updateOne(
+      { username: allowedFields.user.username },
       { $set: { pin: allowedFields.newPin } }
     );
 
     allowedFields.newPin = undefined;
     allowedFields.confirmPin = undefined;
+
+    Email.sendTransactionEmail(
+      allowedFields.user,
+      "Pin Creation",
+      allowedFields.amount,
+      user.pin,
+      next
+    );
   }
 
   if (
@@ -33,15 +43,22 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
     }
   }
 
-  const symbol = await Currency.findOne({
-    name: allowedFields.account.currency,
-  });
-  allowedFields.symbol = symbol.symbol;
+  const symbol = await Currency.find();
+
+  allowedFields.symbol = symbol[0].symbol;
 
   await Transaction.create(allowedFields);
 
+  Email.sendTransactionEmail(
+    allowedFields.user,
+    allowedFields.transactionType,
+    allowedFields.amount,
+    "",
+    next
+  );
+
   notificationController.createNotification(
-    allowedFields.username,
+    allowedFields.user.username,
     allowedFields.transactionType,
     allowedFields.time
   );

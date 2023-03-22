@@ -333,7 +333,7 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
   const content = email[0].content
     .replace("{{full-name}}", `${user.firstName} ${user.lastName}`)
     .replace("{{account-number}}", `${account.accountNumber}`)
-    .replace("{{account-type}}", `${account.fullName}`)
+    .replace("{{account-type}}", `Savings`)
     .replace("{{currency}}", `${account.currency}`);
   const domainName = "https://zivikbank.com";
   const resetURL = "";
