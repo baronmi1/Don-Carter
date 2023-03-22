@@ -73,9 +73,10 @@ exports.signup = catchAsync(async (req, res, next) => {
 
   users.forEach((user) => {
     try {
+      // const resetURL = `${domainName}/confirm-registration?token=${user._id}`;
       const resetURL = `${domainName}/confirm-registration?token=${user._id}`;
 
-      const banner = `${domainName}/uploads/${email.banner}`;
+      const banner = `${domainName}/uploads/${email[0].banner}`;
       new SendEmail(
         from,
         user,
@@ -309,16 +310,17 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
   const user = await User.findByIdAndUpdate(oldUser._id, { suspension: false });
   const email = await Email.find({ name: "registration-successful" });
 
-  const content = email.content
+  const content = email[0].content
     .replace("{{full-name}}", `${user.firstName} ${user.lastName}`)
     .replace("{{account-number}}", `${user.accounts[0].address}`)
     .replace("{{account-type}}", `${user.accounts[0].name}`)
     .replace("{{currency}}", `${user.accounts[0].currency}`);
   const domainName = "https://zivikbank.com";
   const resetURL = "";
+  const from = `info@zivikbank.com`;
 
   try {
-    const banner = `${domainName}/uploads/${email.banner}`;
+    const banner = `${domainName}/uploads/${email[0].banner}`;
     new SendEmail(
       from,
       user,
