@@ -18,6 +18,7 @@ const faqRouter = require("./routes/faqRoutes");
 const termsRouter = require("./routes/termsRoutes");
 const cardRouter = require("./routes/cardRoutes");
 const blogRouter = require("./routes/blogRoutes");
+const accountRouter = require("./routes/accountRoutes");
 
 const chokidar = require("chokidar");
 
@@ -69,6 +70,7 @@ app.use("/api/faq", faqRouter);
 app.use("/api/terms", termsRouter);
 app.use("/api/card", cardRouter);
 app.use("/api/blog", blogRouter);
+app.use("/api/account", accountRouter);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "/dist/")));

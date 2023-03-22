@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const { promisify } = require("util");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
+const Account = require("../models/accountsModel");
 const Email = require("../models/emailModel");
 const AppError = require("../utils/appError");
 const SendEmail = require("../utils/email");
@@ -39,7 +40,6 @@ exports.signup = catchAsync(async (req, res, next) => {
   req.body.profilePicture = req.files.profilePicture[0].filename;
   req.body.idPicture = req.files.idPicture[0].filename;
 
-  req.body.accounts = JSON.parse(req.body.accounts);
   req.body.suspension = true;
 
   const existingUsers = await User.find();
@@ -69,7 +69,8 @@ exports.signup = catchAsync(async (req, res, next) => {
   // CALL THE EMAIL METHOD AND SEND THE EMAIL
   const from = `info@zivikbank.com`;
 
-  const domainName = "https://zivikbank.com";
+  const domainName = "http://localhost:3000";
+  // const domainName = "https://zivikbank.com";
 
   users.forEach((user) => {
     try {
@@ -307,14 +308,33 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
     );
   }
 
+  const getAccountNumber = () => {
+    let min = 10000000;
+    let max = 99999999;
+
+    let random_number = Math.floor(Math.random() * (max - min + 1)) + min; // generates an 8-digit number
+    return "00" + random_number.toString(); // adds two leading zeros
+  };
+
   const user = await User.findByIdAndUpdate(oldUser._id, { suspension: false });
   const email = await Email.find({ name: "registration-successful" });
 
+  const accountDetails = {
+    accountType: "Savings",
+    fullName: `${user.firstName} ${user.middleName} ${user.lastName}`,
+    username: user.username,
+    currency: "Dollars",
+    accountNumber: getAccountNumber(),
+    balance: 0,
+  };
+
+  const account = await Account.create(accountDetails);
+
   const content = email[0].content
     .replace("{{full-name}}", `${user.firstName} ${user.lastName}`)
-    .replace("{{account-number}}", `${user.accounts[0].address}`)
-    .replace("{{account-type}}", `${user.accounts[0].name}`)
-    .replace("{{currency}}", `${user.accounts[0].currency}`);
+    .replace("{{account-number}}", `${account.accountNumber}`)
+    .replace("{{account-type}}", `${account.fullName}`)
+    .replace("{{currency}}", `${account.currency}`);
   const domainName = "https://zivikbank.com";
   const resetURL = "";
   const from = `info@zivikbank.com`;
