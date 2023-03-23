@@ -13,7 +13,7 @@ const catchAsync = require("../utils/catchAsync");
 exports.createTransaction = catchAsync(async (req, res, next) => {
   const allowedFields = req.body;
 
-  allowedFields.account = allowedFields.account;
+  allowedFields.account = req.body.account;
   allowedFields.username = allowedFields.account.username;
 
   if (allowedFields.setPin) {
@@ -35,8 +35,8 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
   }
 
   if (
-    allowedFields.transactionType == "Withdrawal" ||
-    allowedFields.transactionType == "Transfer"
+    allowedFields.transactionType == "withdrawal" ||
+    allowedFields.transactionType == "transfer"
   ) {
     if (allowedFields.account.balance < allowedFields.amount) {
       return next(
@@ -62,7 +62,8 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
   notificationController.createNotification(
     allowedFields.user.username,
     allowedFields.transactionType,
-    allowedFields.time
+    allowedFields.date,
+    allowedFields.dateCreated
   );
 
   res.status(200).json({
@@ -111,8 +112,7 @@ exports.approveTransaction = catchAsync(async (req, res, next) => {
   let account = req.body.account;
   let form = req.body;
 
-  const user = await User.findOne({ username: form.username });
-
+  const user = await User.findOne({ username: form.account.username });
   let result = await Account.findById(form.account._id);
   let oldAmount = result.balance;
 
@@ -151,7 +151,7 @@ exports.approveTransaction = catchAsync(async (req, res, next) => {
 
   notificationController.createNotification(
     user.username,
-    email.title,
+    `${form.transactionType}-approval`,
     form.date,
     form.dateCreated
   );
