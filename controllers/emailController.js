@@ -110,37 +110,36 @@ exports.deleteEmail = catchAsync(async (req, res, next) => {
   next();
 });
 
-exports.sendTransactionEmail = catchAsync(
-  async (user, type, amount, pin, next) => {
-    const email = await Email.findOne({ title: type });
-    const company = await Company.find();
+exports.sendTransactionEmail = catchAsync(async (user, type, amount, pin) => {
+  console.log(type, amount, pin);
+  // const email = await Email.findOne({ title: type });
+  // const company = await Company.find();
 
-    console.log(type);
-
-    const from = `${company[0].systemEmail}`;
-    const content = email.content
-      .replace("{{amount}}", amount)
-      .replace("{{pin}}", pin);
-    try {
-      // const resetURL = `${req.protocol}://${req.get("host")}/${req.url}`;
-      const resetURL = `https://zivikbank.com`;
-      const banner = `https://zivikbank.com/uploads/${email.banner}`;
-      new SendEmail(
-        from,
-        user,
-        email.name,
-        email.title,
-        banner,
-        content,
-        email.headerColor,
-        email.footerColor,
-        email.mainColor,
-        email.greeting,
-        email.warning,
-        resetURL
-      ).sendEmail();
-    } catch (err) {
-      return `There was an error sending the email. Try again later!, ${err}`;
-    }
-  }
-);
+  // // const from = `${company[0].systemEmail}`;
+  // const from = `info@zivikbank.com`;
+  // const content = email.content
+  //   .replace("{{amount}}", amount)
+  //   .replace("{{pin}}", pin)
+  //   .replace("{{currency}}", account.currency);
+  // try {
+  //   // const resetURL = `${req.protocol}://${req.get("host")}/${req.url}`;
+  //   const resetURL = `https://zivikbank.com`;
+  //   const banner = `https://zivikbank.com/uploads/${email.banner}`;
+  //   new SendEmail(
+  //     from,
+  //     user,
+  //     email.name,
+  //     email.title,
+  //     banner,
+  //     content,
+  //     email.headerColor,
+  //     email.footerColor,
+  //     email.mainColor,
+  //     email.greeting,
+  //     email.warning,
+  //     resetURL
+  //   ).sendEmail();
+  // } catch (err) {
+  //   return `There was an error sending the email. Try again later!, ${err}`;
+  // }
+});

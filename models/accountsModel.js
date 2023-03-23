@@ -6,6 +6,7 @@ const accountSchema = new mongoose.Schema({
   username: String,
   balance: Number,
   accountNumber: Number,
+  currency: String,
   dateCreated: {
     type: Number,
     default: new Date().getTime(),

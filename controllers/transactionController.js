@@ -1,10 +1,10 @@
 const Transaction = require("../models/transactionModel");
 const Currency = require("../models/currencyModel");
+const Company = require("../models/companyModel");
 const AppError = require("../utils/appError");
 const User = require("../models/userModel");
-const Account = require("../models/accountsModel");
-const Email = require("../controllers/emailController");
-const Notification = require("../models/notificationModel");
+const Email = require("../models/emailModel");
+const SendEmail = require("../utils/email");
 const notificationController = require("../controllers/notificationController");
 const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
@@ -20,16 +20,16 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
       { $set: { pin: allowedFields.newPin } }
     );
 
-    allowedFields.newPin = undefined;
-    allowedFields.confirmPin = undefined;
-
-    Email.sendTransactionEmail(
+    sendTransactionEmail(
       allowedFields.user,
       "Pin Creation",
       allowedFields.amount,
-      user.pin,
-      next
+      allowedFields.newPin,
+      allowedFields.account
     );
+
+    allowedFields.newPin = undefined;
+    allowedFields.confirmPin = undefined;
   }
 
   if (
@@ -49,12 +49,12 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
 
   await Transaction.create(allowedFields);
 
-  Email.sendTransactionEmail(
+  sendTransactionEmail(
     allowedFields.user,
     allowedFields.transactionType,
     allowedFields.amount,
     "",
-    next
+    allowedFields.account
   );
 
   notificationController.createNotification(
@@ -187,3 +187,36 @@ exports.deleteTransaction = catchAsync(async (req, res, next) => {
 
   next();
 });
+
+const sendTransactionEmail = async (user, type, amount, pin, account) => {
+  const email = await Email.findOne({ title: type });
+  const company = await Company.find();
+
+  // const from = `${company[0].systemEmail}`;
+  const from = `info@zivikbank.com`;
+  const content = email.content
+    .replace("{{amount}}", amount)
+    .replace("{{pin}}", pin)
+    .replace("{{currency}}", account.currency);
+  try {
+    // const resetURL = `${req.protocol}://${req.get("host")}/${req.url}`;
+    const resetURL = `https://zivikbank.com`;
+    const banner = `https://zivikbank.com/uploads/${email.banner}`;
+    new SendEmail(
+      from,
+      user,
+      email.name,
+      email.title,
+      banner,
+      content,
+      email.headerColor,
+      email.footerColor,
+      email.mainColor,
+      email.greeting,
+      email.warning,
+      resetURL
+    ).sendEmail();
+  } catch (err) {
+    return `There was an error sending the email. Try again later!, ${err}`;
+  }
+};
