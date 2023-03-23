@@ -1,6 +1,7 @@
 const Transaction = require("../models/transactionModel");
 const Currency = require("../models/currencyModel");
 const Company = require("../models/companyModel");
+const Account = require("../models/accountsModel");
 const AppError = require("../utils/appError");
 const User = require("../models/userModel");
 const Email = require("../models/emailModel");
@@ -13,6 +14,7 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
   const allowedFields = req.body;
 
   allowedFields.account = allowedFields.account;
+  allowedFields.username = allowedFields.account.username;
 
   if (allowedFields.setPin) {
     const user = await User.updateOne(
@@ -112,18 +114,14 @@ exports.approveTransaction = catchAsync(async (req, res, next) => {
   let allowedFields = req.body;
   const user = await User.findOne({ username: allowedFields.username });
 
-  const getBalance = () => {
-    user.accounts.forEach((el) => {
-      if (el.name == name) {
-        oldAmount = el.balance;
-        return el;
-      }
-    });
+  const getBalance = async () => {
+    const account = await Account.findById(user._id);
+    return account.balance;
   };
 
   getBalance();
 
-  if (allowedFields.transactionType == "Deposit") {
+  if (allowedFields.transactionType == "Deposit Notification") {
     amount = Number(oldAmount) + Number(allowedFields.amount);
   }
 

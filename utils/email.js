@@ -74,6 +74,7 @@ module.exports = class Email {
           warning: this.warning,
           name: this.user.username,
           resetURL: this.resetURL,
+          from: this.from,
         },
       })
       .then((res) => {

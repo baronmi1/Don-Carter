@@ -1,5 +1,6 @@
 const { token } = require("morgan");
 const User = require("../models/userModel");
+const Account = require("../models/accountsModel");
 const AppError = require("../utils/appError");
 const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
@@ -89,11 +90,11 @@ exports.editUser = catchAsync(async (req, res, next) => {
 });
 
 exports.searchUser = async (req, res) => {
-  const user = await User.find({
-    accounts: { $elemMatch: { address: req.params.number } },
+  const account = await Account.findOne({
+    accountNumber: req.params.number,
   });
   res.status(200).json({
     status: "success",
-    user: user,
+    account: account,
   });
 };
