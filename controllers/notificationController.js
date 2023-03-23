@@ -22,39 +22,63 @@ exports.getNotifications = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.createNotification = async (username, transactionType, time) => {
+exports.createNotification = async (
+  username,
+  transactionType,
+  date,
+  dateCreated
+) => {
   const withdrawalNotice = `Hello ${username}, you have made withdrawal transaction,
   the transaction will be processed automatically with a maximum processing time of 24 hours and you will be notified once the transaction is confirmed.
   Please contact us for any issue.`;
+
+  const withdrawalApproval = `Hello ${username}, your last withdrawal transaction has been approved,
+  and the receipient account credited, thanks for choosing Zivik Bank.`;
 
   const depositNotice = `Hello ${username}, you have made deposit transaction,
   the transaction will be processed automatically with a maximum processing time of 24 hours and you will be notified once the transaction is confirmed.
   Please contact us for any issue.`;
 
+  const depositApproval = `Hello ${username}, your last deposit transaction has been approved and your account credited,
+  thanks for choosing Zivik Bank.`;
+
   const transferNotice = `Hello ${username}, you have made a transfer to a Zivik user,
   the transaction will be processed automatically with a maximum processing time of 24 hours and you will be notified once the transaction is confirmed.
   Please contact us for any issue.`;
 
-  const depositApproval = `Hello ${username}, your last deposit transaction has been approved and your account credited,
-thanks for choosing Zivik Bank.`;
+  const internalApproval = `Hello ${username}, your last transfer transaction to a Zivik user,
+  has been approved and the receipient credited, thanks for choosing Zivik Bank.`;
+
+  let title = "";
 
   const getTransctionMsg = () => {
-    if (transactionType == "Withdrawal") {
+    if (transactionType == "withdrawal") {
+      title = "Withdrawal Notification";
       return withdrawalNotice;
-    } else if (transactionType == "Deposit") {
+    } else if (transactionType == "deposit") {
+      title = "Deposit Notification";
       return depositNotice;
-    } else if (transactionType == "Deposit Approval") {
+    } else if (transactionType == "deposit-approval") {
+      title = "Deposit Approval Notification";
       return depositApproval;
-    } else if (transactionType == "Transfer") {
+    } else if (transactionType == "internal-transfer") {
+      title = "Internal Transfer Notification";
       return transferNotice;
+    } else if (transactionType == "internal-transfer-approval") {
+      title = "Internal Transfer Approval Notification";
+      return internalApproval;
+    } else if (transactionType == "withdrawal-approval") {
+      title = "Withdrawal Approval Notification";
+      return withdrawalApproval;
     }
   };
 
   const notice = {
     username: username,
     message: getTransctionMsg(),
-    subject: `${transactionType} Notice`,
-    dateCreated: time,
+    subject: title,
+    date: date,
+    dateCreated: dateCreated,
   };
 
   await Notification.create(notice);

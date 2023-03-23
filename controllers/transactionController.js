@@ -108,62 +108,55 @@ exports.getTransactionVolume = catchAsync(async (req, res, next) => {
 
 exports.approveTransaction = catchAsync(async (req, res, next) => {
   let amount = 0;
-  let oldAmount;
-  const name = req.body.account.name;
+  let account = req.body.account;
+  let form = req.body;
 
-  let allowedFields = req.body;
-  const user = await User.findOne({ username: allowedFields.username });
+  const user = await User.findOne({ username: form.username });
 
-  const getBalance = async () => {
-    const account = await Account.findById(user._id);
-    return account.balance;
-  };
+  let result = await Account.findById(form.account._id);
+  let oldAmount = result.balance;
 
-  getBalance();
-
-  if (allowedFields.transactionType == "Deposit Notification") {
-    amount = Number(oldAmount) + Number(allowedFields.amount);
+  if (form.transactionType == "deposit") {
+    amount = oldAmount * 1 + form.amount * 1;
   }
 
   if (
-    allowedFields.transactionType == "Withdrawal" ||
-    allowedFields.transactionType == "Transfer"
+    form.transactionType == "withdrawal" ||
+    form.transactionType == "internal-transfer"
   ) {
-    amount = Number(oldAmount) - Number(allowedFields.amount);
+    amount = oldAmount * 1 - form.amount * 1;
   }
 
-  allowedFields.status = !allowedFields.status;
+  form.status = !form.status;
 
-  await Transaction.findByIdAndUpdate(req.params.id, allowedFields, {
+  await Transaction.findByIdAndUpdate(req.params.id, form, {
     new: true,
     runValidators: true,
     useFindAndModify: false,
   });
-
-  const setBalance = () => {
-    user.accounts.forEach((el) => {
-      if (el.name == name) {
-        el.balance = amount;
-      }
-    });
-  };
-
-  setBalance();
-
   await User.findByIdAndUpdate(
     user._id,
-    { accounts: user.accounts },
+    { totalBalance: amount },
     {
       new: true,
       runValidators: true,
       useFindAndModify: false,
     }
   );
+  await Account.findByIdAndUpdate(account._id, { balance: amount });
+
+  const email = await Email.findOne({
+    name: `${form.transactionType}-approval`,
+  });
 
   notificationController.createNotification(
     user.username,
-    `${allowedFields.transactionType} Approval`
+    email.title,
+    form.date,
+    form.dateCreated
   );
+
+  sendTransactionEmail(user, email.name, form.amount, "", account);
 
   res.status(200).json({
     status: "success",
@@ -204,7 +197,7 @@ const sendTransactionEmail = async (user, type, amount, pin, account) => {
     new SendEmail(
       from,
       user,
-      email.name,
+      "transaction",
       email.title,
       banner,
       content,
