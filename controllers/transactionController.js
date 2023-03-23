@@ -111,6 +111,7 @@ exports.approveTransaction = catchAsync(async (req, res, next) => {
   let amount = 0;
   let account = req.body.account;
   let form = req.body;
+  let receiver;
 
   const user = await User.findOne({ username: form.account.username });
   let result = await Account.findById(form.account._id);
@@ -153,10 +154,39 @@ exports.approveTransaction = catchAsync(async (req, res, next) => {
     user.username,
     `${form.transactionType}-approval`,
     form.date,
-    form.dateCreated
+    form.dateCreated,
+    ""
   );
 
   sendTransactionEmail(user, email.name, form.amount, "", account);
+
+  if (form.transactionType == "internal-transfer") {
+    receiver = await User.findOne({ username: form.receiverUsername });
+    let receiverAccount = await Account.findOne({
+      username: form.receiverUsername,
+    });
+    let receiverBalance = receiverAccount.balance;
+
+    let newBalance = receiverBalance * 1 + form.amount;
+
+    await Account.findByIdAndUpdate(receiverAccount._id, {
+      balance: newBalance,
+    });
+
+    const email = await Email.findOne({
+      name: `credit-approval`,
+    });
+
+    notificationController.createNotification(
+      receiver.username,
+      `credit-approval`,
+      form.date,
+      form.dateCreated,
+      form.username
+    );
+
+    sendTransactionEmail(receiver, email.name, form.amount, "", account);
+  }
 
   res.status(200).json({
     status: "success",

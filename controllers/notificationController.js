@@ -26,7 +26,8 @@ exports.createNotification = async (
   username,
   transactionType,
   date,
-  dateCreated
+  dateCreated,
+  reciever
 ) => {
   const withdrawalNotice = `Hello ${username}, you have made withdrawal transaction,
   the transaction will be processed automatically with a maximum processing time of 24 hours and you will be notified once the transaction is confirmed.
@@ -49,6 +50,9 @@ exports.createNotification = async (
   const internalApproval = `Hello ${username}, your last transfer transaction to a Zivik user,
   has been approved and the receipient credited, thanks for choosing Zivik Bank.`;
 
+  const creditApproval = `Hello ${username}, your account has been credited by ${receiver} a Zivik Bank user,
+  check your email and dashboard for confirmation, thanks for choosing Zivik Bank.`;
+
   let title = "";
 
   const getTransctionMsg = () => {
@@ -70,6 +74,9 @@ exports.createNotification = async (
     } else if (transactionType == "withdrawal-approval") {
       title = "Withdrawal Approval Notification";
       return withdrawalApproval;
+    } else if (transactionType == "credit-approval") {
+      title = "Credit Approval Notification";
+      return creditApproval;
     }
   };
 

@@ -49,14 +49,10 @@ exports.editUser = catchAsync(async (req, res, next) => {
   let files = [];
   const oldUser = await User.findById(req.params.id);
 
-  if (req.body.accounts) {
-    let accounts = JSON.parse(req.body.accounts);
-    accounts.forEach((el) => {
-      if (el.id == undefined || el.id == "") {
-        el.id = new ObjectId();
-      }
+  if (req.body.balance) {
+    await Account.findByIdAndUpdate(req.body.accountId, {
+      balance: req.body.balance,
     });
-    req.body.accounts = accounts;
   }
 
   if (req.files) {

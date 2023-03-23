@@ -9,6 +9,7 @@ const transactionSchema = new mongoose.Schema({
   receiverName: String,
   receiverBank: String,
   receiverAddress: String,
+  receiverUsername: String,
   narration: String,
   date: String,
   status: {
