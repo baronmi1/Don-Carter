@@ -215,7 +215,7 @@ const sendTransactionEmail = async (user, type, amount, pin, account) => {
   const email = await Email.findOne({ name: type });
   const company = await Company.find();
   const from = `${company[0].systemEmail}`;
-  const content = email.content
+  const content = email?.content
     .replace("{{amount}}", amount)
     .replace("{{pin}}", pin)
     .replace("{{currency}}", account.currency);
