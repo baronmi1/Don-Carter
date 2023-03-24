@@ -323,7 +323,7 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
     accountType: "Savings",
     fullName: `${user.firstName} ${user.middleName} ${user.lastName}`,
     username: user.username,
-    currency: "Dollars",
+    currency: "USD",
     accountNumber: getAccountNumber(),
     balance: 0,
   };
