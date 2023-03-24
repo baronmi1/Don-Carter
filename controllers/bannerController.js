@@ -4,7 +4,9 @@ const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
 
 exports.createBanner = catchAsync(async (req, res) => {
-  req.body.bannerImage = req.file.filename;
+  if (req.file) {
+    req.body.bannerImage = req.file.filename;
+  }
   const banner = await Banner.create(req.body);
 
   res.status(200).json({

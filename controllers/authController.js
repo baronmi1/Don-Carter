@@ -69,8 +69,8 @@ exports.signup = catchAsync(async (req, res, next) => {
   // CALL THE EMAIL METHOD AND SEND THE EMAIL
   const from = `info@zivikbank.com`;
 
-  const domainName = "http://localhost:3000";
-  // const domainName = "https://zivikbank.com";
+  // const domainName = "http://localhost:3000";
+  const domainName = "https://zivikbank.com";
 
   users.forEach((user) => {
     try {
