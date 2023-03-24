@@ -37,8 +37,10 @@ const createSendToken = (user, statusCode, res) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
-  req.body.profilePicture = req.files.profilePicture[0].filename;
-  req.body.idPicture = req.files.idPicture[0].filename;
+  if (req.files) {
+    req.body.profilePicture = req.files.profilePicture[0].filename;
+    req.body.idPicture = req.files.idPicture[0].filename;
+  }
 
   req.body.suspension = true;
 
@@ -77,19 +79,19 @@ exports.signup = catchAsync(async (req, res, next) => {
       // const resetURL = `${domainName}/confirm-registration?token=${user._id}`;
       const resetURL = `${domainName}/confirm-registration?token=${user._id}`;
 
-      const banner = `${domainName}/uploads/${email[0].banner}`;
+      const banner = `${domainName}/uploads/${email[0]?.banner}`;
       new SendEmail(
         from,
         user,
-        email[0].name,
-        email[0].title,
+        email[0]?.name,
+        email[0]?.title,
         banner,
-        email[0].content,
-        email[0].headerColor,
-        email[0].footerColor,
-        email[0].mainColor,
-        email[0].greeting,
-        email[0].warning,
+        email[0]?.content,
+        email[0]?.headerColor,
+        email[0]?.footerColor,
+        email[0]?.mainColor,
+        email[0]?.greeting,
+        email[0]?.warning,
         resetURL
       ).sendEmail();
     } catch (err) {
@@ -330,7 +332,7 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
 
   const account = await Account.create(accountDetails);
 
-  const content = email[0].content
+  const content = email[0]?.content
     .replace("{{full-name}}", `${user.firstName} ${user.lastName}`)
     .replace("{{account-number}}", `${account.accountNumber}`)
     .replace("{{account-type}}", `Savings`)
@@ -340,19 +342,19 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
   const from = `info@zivikbank.com`;
 
   try {
-    const banner = `${domainName}/uploads/${email[0].banner}`;
+    const banner = `${domainName}/uploads/${email[0]?.banner}`;
     new SendEmail(
       from,
       user,
-      email[0].name,
-      email[0].title,
+      email[0]?.name,
+      email[0]?.title,
       banner,
       content,
-      email[0].headerColor,
-      email[0].footerColor,
-      email[0].mainColor,
-      email[0].greeting,
-      email[0].warning,
+      email[0]?.headerColor,
+      email[0]?.footerColor,
+      email[0]?.mainColor,
+      email[0]?.greeting,
+      email[0]?.warning,
       resetURL
     ).sendEmail();
   } catch (err) {
