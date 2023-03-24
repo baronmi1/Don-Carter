@@ -27,7 +27,7 @@ exports.createNotification = async (
   transactionType,
   date,
   dateCreated,
-  reciever
+  receiver
 ) => {
   const withdrawalNotice = `Hello ${username}, you have made withdrawal transaction,
   the transaction will be processed automatically with a maximum processing time of 24 hours and you will be notified once the transaction is confirmed.
