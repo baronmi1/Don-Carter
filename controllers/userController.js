@@ -94,3 +94,11 @@ exports.searchUser = async (req, res) => {
     account: account,
   });
 };
+
+exports.editUser = catchAsync(async (req, res, next) => {
+  await User.findByIdAndDelete(req.params.id);
+
+  res.status(200).json({
+    status: "success",
+  });
+});
