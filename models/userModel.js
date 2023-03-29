@@ -36,38 +36,17 @@ const userSchema = new mongoose.Schema({
   profilePicture: String,
   identity: String,
   idPicture: String,
-
   dob: Number,
-
-  income: String,
-  maritalStatus: String,
-  gender: String,
-  position: String,
-
-  residentAddress1: String,
-  residentAddress2: String,
-  residentDistrict: String,
-  residentState: String,
-  residentZipCode: String,
-  residentCountry: String,
-
-  originAddress1: String,
-  originAddress2: String,
-  originDistrict: String,
-  originState: String,
-  originZipCode: String,
-  originCountry: String,
+  pin: Number,
+  currency: String,
 
   phoneNumber1: {
     type: String,
-    // required: [true, "Please fill in your phone number"],
-    // unique: [true, "A user with this phone number already exist"],
-    // minlength: [10, "Phone number must be at least 10 digits"],
-    // trim: true,
+    required: [true, "Please fill in your phone number"],
+    unique: [true, "A user with this phone number already exist"],
+    minlength: [10, "Phone number must be at least 10 digits"],
+    trim: true,
   },
-
-  phoneNumber2: String,
-
   email: {
     type: String,
     required: [true, "Please fill in your email"],
@@ -76,28 +55,10 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     validate: [validator.isEmail, "Please provide a valid email"],
   },
-
   autoRegister: {
-    type: Boolean,
-    default: true,
-  },
-
-  hasInvested: {
     type: Boolean,
     default: false,
   },
-
-  lastInvest: {
-    type: Date,
-  },
-
-  accounts: Array,
-  pin: Number,
-  kinFullName: String,
-  kinRelationship: String,
-  kinAddress: String,
-  kinEmail: String,
-  kinPhoneNumber: String,
 
   totalBalance: {
     type: Number,
@@ -149,11 +110,7 @@ const userSchema = new mongoose.Schema({
     },
   },
 
-  activePlans: Array,
-
-  regDate: { type: Date, default: new Date().getTime() },
-  image: { type: String },
-  identity: { type: String },
+  regDate: Number,
   referrals: Array,
   passwordChangedAt: Date,
   passwordResetToken: String,

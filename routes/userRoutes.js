@@ -11,6 +11,8 @@ router.post("/login", authController.login);
 router.route("/get-user").get(authController.getAUser);
 router.route("/activate-user/:id").patch(authController.activateAUser);
 
+router.route("/related/:username").get(userController.getRelatedData);
+
 router.get("/search-user/:number", userController.searchUser);
 
 router
@@ -33,12 +35,12 @@ router
     upload.upload.single("image"),
     userController.editUser,
     deleteFile
+  )
+  .delete(
+    authController.protect,
+    // authController.restrictTo("room"),
+    userController.deleteUser,
+    userController.getAllUsers
   );
-//   .delete(
-//     // authController.protect,
-//     // authController.restrictTo("room"),
-//     planController.deletePlan,
-//     deleteFile
-//   );
 
 module.exports = router;

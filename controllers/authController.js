@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const { promisify } = require("util");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
+const Related = require("../models/relatedModel");
 const Account = require("../models/accountsModel");
 const Email = require("../models/emailModel");
 const AppError = require("../utils/appError");
@@ -37,7 +38,7 @@ const createSendToken = (user, statusCode, res) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
-  if (req.files) {
+  if (req.files.profilePicture) {
     req.body.profilePicture = req.files.profilePicture[0].filename;
     req.body.idPicture = req.files.idPicture[0].filename;
   }
@@ -52,8 +53,29 @@ exports.signup = catchAsync(async (req, res, next) => {
   }
 
   const user = await User.create(req.body);
+  const related = await Related.create(req.body);
 
   if (req.body.autoRegister) {
+    const getAccountNumber = () => {
+      let min = 10000000;
+      let max = 99999999;
+
+      let random_number = Math.floor(Math.random() * (max - min + 1)) + min; // generates an 8-digit number
+      return "00" + random_number.toString(); // adds two leading zeros
+    };
+    const newUser = await User.findByIdAndUpdate(user._id, {
+      suspension: false,
+    });
+
+    const accountDetails = {
+      fullName: `${newUser.firstName} ${newUser.middleName} ${newUser.lastName}`,
+      username: newUser.username,
+      currency: newUser.currency,
+      accountNumber: getAccountNumber(),
+      balance: 0,
+    };
+    await Account.create(accountDetails);
+
     res.status(200).json({
       status: "success",
     });
@@ -69,14 +91,13 @@ exports.signup = catchAsync(async (req, res, next) => {
   // )}/api/vi/users/resetPassword/?token=${resetToken}`;
 
   // CALL THE EMAIL METHOD AND SEND THE EMAIL
-  const from = `info@zivikbank.com`;
+  const from = `info@standardfinancebank.com`;
 
-  // const domainName = "http://localhost:3000";
-  const domainName = "https://zivikbank.com";
+  const domainName = "http://localhost:3000";
+  // const domainName = "https://standardfinancebank.com";
 
   users.forEach((user) => {
     try {
-      // const resetURL = `${domainName}/confirm-registration?token=${user._id}`;
       const resetURL = `${domainName}/confirm-registration?token=${user._id}`;
 
       const banner = `${domainName}/uploads/${email[0]?.banner}`;
@@ -322,10 +343,9 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
   const email = await Email.find({ name: "registration-successful" });
 
   const accountDetails = {
-    accountType: "Savings",
     fullName: `${user.firstName} ${user.middleName} ${user.lastName}`,
     username: user.username,
-    currency: "USD",
+    currency: user.currency,
     accountNumber: getAccountNumber(),
     balance: 0,
   };

@@ -3,15 +3,14 @@ const AppError = require("../utils/appError");
 const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
 
-exports.createCurrency = catchAsync(async (req, res) => {
+exports.createCurrency = catchAsync(async (req, res, next) => {
   const allowedFields = req.body;
-  allowedFields.symbol = req.file.filename;
+  if (req.file) {
+    allowedFields.symbol = req.file.filename;
+  }
   const currency = await Currency.create(allowedFields);
 
-  res.status(200).json({
-    status: "success",
-    data: currency,
-  });
+  next();
 });
 
 exports.getCurrencies = catchAsync(async (req, res, next) => {

@@ -13,7 +13,11 @@ router.route("/toggle-status/:id").patch(
 
 router
   .route("/")
-  .post(upload.upload.single("symbol"), currencyController.createCurrency)
+  .post(
+    upload.upload.single("symbol"),
+    currencyController.createCurrency,
+    currencyController.getCurrencies
+  )
   .get(currencyController.getCurrencies);
 
 router

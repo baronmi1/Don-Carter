@@ -1,5 +1,6 @@
 const { token } = require("morgan");
 const User = require("../models/userModel");
+const Related = require("../models/relatedModel");
 const Account = require("../models/accountsModel");
 const AppError = require("../utils/appError");
 const APIFeatures = require("../utils/apiFeatures");
@@ -55,7 +56,7 @@ exports.editUser = catchAsync(async (req, res, next) => {
     });
   }
 
-  if (req.files) {
+  if (req.files.profilePicture) {
     if (req.files.profilePicture) {
       req.body.profilePicture = req.files.profilePicture[0].filename;
       files.push(oldUser.profilePicture);
@@ -85,6 +86,18 @@ exports.editUser = catchAsync(async (req, res, next) => {
   next();
 });
 
+exports.getRelatedData = catchAsync(async (req, res, next) => {
+  const related = await Related.findOne({ username: req.params.username });
+
+  if (!related) {
+    return next(new AppError("No user found with that ID", 404));
+  }
+  res.status(200).json({
+    status: "success",
+    data: related,
+  });
+});
+
 exports.searchUser = async (req, res) => {
   const account = await Account.findOne({
     accountNumber: req.params.number,
@@ -95,10 +108,10 @@ exports.searchUser = async (req, res) => {
   });
 };
 
-exports.editUser = catchAsync(async (req, res, next) => {
-  await User.findByIdAndDelete(req.params.id);
+exports.deleteUser = catchAsync(async (req, res, next) => {
+  const user = await User.findByIdAndDelete(req.params.id);
+  await Related.findOneAndDelete({ username: user.username });
+  await Account.findOneAndDelete({ username: user.username });
 
-  res.status(200).json({
-    status: "success",
-  });
+  next();
 });

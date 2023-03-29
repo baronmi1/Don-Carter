@@ -2,7 +2,10 @@ const mongoose = require("mongoose");
 
 const currencySchema = new mongoose.Schema({
   symbol: String,
-  name: String,
+  name: {
+    type: String,
+    unique: [true, "This currency already exist"],
+  },
   address: String,
   description: String,
   status: {
