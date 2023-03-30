@@ -38,9 +38,11 @@ const createSendToken = (user, statusCode, res) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
-  if (req.files.profilePicture) {
+  if (req.files.profilePicture && req.files.idPicture) {
     req.body.profilePicture = req.files.profilePicture[0].filename;
     req.body.idPicture = req.files.idPicture[0].filename;
+  } else {
+    return next(new AppError(`Please upload the necessary documents!`, 500));
   }
 
   req.body.suspension = true;

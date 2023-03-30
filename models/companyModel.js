@@ -3,8 +3,6 @@ const validator = require("validator");
 
 const companySchema = new mongoose.Schema({
   staffPositions: Array,
-  aboutText: String,
-  certificate: String,
   socials: Array,
   coloredSocials: Array,
   media: Array,

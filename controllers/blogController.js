@@ -5,6 +5,7 @@ const catchAsync = require("../utils/catchAsync");
 
 exports.createBlog = catchAsync(async (req, res) => {
   req.body.banner = req.file.filename;
+
   const blog = await Blog.create(req.body);
 
   res.status(200).json({

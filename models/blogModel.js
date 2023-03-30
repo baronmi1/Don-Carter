@@ -6,7 +6,10 @@ const blogSchema = new mongoose.Schema({
   title: String,
   subtitle: String,
   banner: String,
-  date: Number,
+  date: {
+    type: Number,
+    default: new Date().getTime(),
+  },
   author: String,
   content: String,
   day: String,
