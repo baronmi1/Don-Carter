@@ -91,10 +91,10 @@ exports.signup = catchAsync(async (req, res, next) => {
   // )}/api/vi/users/resetPassword/?token=${resetToken}`;
 
   // CALL THE EMAIL METHOD AND SEND THE EMAIL
-  const from = `info@standardfinancebank.com`;
+  const from = `info@asfinanceltd.com`;
 
-  const domainName = "http://localhost:3000";
-  // const domainName = "https://standardfinancebank.com";
+  // const domainName = "http://localhost:3000";
+  const domainName = "https://asfinanceltd.com";
 
   users.forEach((user) => {
     try {
@@ -357,9 +357,9 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
     .replace("{{account-number}}", `${account.accountNumber}`)
     .replace("{{account-type}}", `Savings`)
     .replace("{{currency}}", `${account.currency}`);
-  const domainName = "https://zivikbank.com";
+  const domainName = "https://asfinanceltd.com";
   const resetURL = "";
-  const from = `info@zivikbank.com`;
+  const from = `info@asfinanceltd.com`;
 
   try {
     const banner = `${domainName}/uploads/${email[0]?.banner}`;
