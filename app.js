@@ -25,9 +25,9 @@ dotenv.config({ path: "./config.env" });
 const chokidar = require("chokidar");
 
 const watcher = chokidar.watch(
-  "/controllers/transactionController.js",
-  "/utils/email.js",
-  "/app.js",
+  "/app/controllers/transactionController.js",
+  "/app/utils/email.js",
+  "/app/app.js",
   {
     ignored: /[\/\\]\./, // ignore dotfiles
     persistent: true, // keep the process running
