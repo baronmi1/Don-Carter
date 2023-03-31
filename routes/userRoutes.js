@@ -20,6 +20,7 @@ router
   .patch(authController.protect, authController.updatePassword);
 
 router.route("/forgotten-password").patch(authController.forgotPassword);
+router.route("/reset-password/:token").patch(authController.resetPassword);
 
 router.post(
   "/signup",
