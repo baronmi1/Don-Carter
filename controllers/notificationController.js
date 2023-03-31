@@ -65,7 +65,7 @@ exports.createNotification = async (
     } else if (transactionType == "deposit-approval") {
       title = "Deposit Approval Notification";
       return depositApproval;
-    } else if (transactionType == "internal-transfer") {
+    } else if (transactionType == "internal") {
       title = "Internal Transfer Notification";
       return transferNotice;
     } else if (transactionType == "internal-transfer-approval") {

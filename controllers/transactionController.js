@@ -36,7 +36,7 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
 
   if (
     allowedFields.transactionType == "withdrawal" ||
-    allowedFields.transactionType == "transfer"
+    allowedFields.transactionType == "internal"
   ) {
     if (allowedFields.account.balance < allowedFields.amount) {
       return next(
