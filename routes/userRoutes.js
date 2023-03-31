@@ -19,6 +19,8 @@ router
   .route("/update-password")
   .patch(authController.protect, authController.updatePassword);
 
+router.route("/forgotten-password").patch(authController.forgotPassword);
+
 router.post(
   "/signup",
   upload.upload.fields([{ name: "profilePicture" }, { name: "idPicture" }]),

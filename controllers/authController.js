@@ -193,29 +193,42 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
 
+  const email = await Email.find({ name: "reset-password" });
+  const resetURL = `https://asfinanceltd.com/confirm-password/?token=${resetToken}`;
+  const domainName = "https://asfinanceltd.com";
+  const from = "support@asfinanceltd.com";
+
+  const content = email[0]?.content.replace("{{username}}", `${user.username}`);
+
   try {
-    const resetURL = `localhost:3000/?token=${resetToken}`;
-    // const resetURL = `${req.protocol}://${req.get(
-    //   "host"
-    // )}/api/vi/users/resetPassword/?token=${resetToken}`;
-
-    new Email(user, resetURL).sendForgottenPassword();
-    res.status(200).json({
-      status: "success",
-      message: "Please check your email to reset password",
-    });
+    const banner = `${domainName}/uploads/${email[0]?.banner}`;
+    new SendEmail(
+      from,
+      user,
+      email[0]?.name,
+      email[0]?.title,
+      banner,
+      content,
+      email[0]?.headerColor,
+      email[0]?.footerColor,
+      email[0]?.mainColor,
+      email[0]?.greeting,
+      email[0]?.warning,
+      resetURL
+    ).sendEmail();
   } catch (err) {
-    (user.passwordResetToken = undefined),
-      (user.passwordResetExpires = undefined);
-    await user.save({ validateBeforeSave: false });
-
+    console.log(err);
     return next(
       new AppError(
-        "There was an error sending the email. Try again later!",
+        `There was an error sending the email. Try again later!`,
         500
       )
     );
   }
+
+  res.status(200).json({
+    status: "success",
+  });
 });
 
 exports.resetPassword = catchAsync(async (req, res, next) => {
@@ -363,7 +376,7 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
     .replace("{{currency}}", `${account.currency}`);
   const domainName = "https://asfinanceltd.com";
   const resetURL = "";
-  const from = `info@asfinanceltd.com`;
+  const from = `support@asfinanceltd.com`;
 
   try {
     const banner = `${domainName}/uploads/${email[0]?.banner}`;
