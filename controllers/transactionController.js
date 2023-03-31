@@ -13,8 +13,8 @@ const catchAsync = require("../utils/catchAsync");
 exports.createTransaction = catchAsync(async (req, res, next) => {
   const allowedFields = req.body;
 
-  allowedFields.account = req.body.account;
-  allowedFields.username = allowedFields.account.username;
+  // allowedFields.account = req.body.account;
+  // allowedFields.username = allowedFields.account.username;
 
   if (allowedFields.setPin) {
     const user = await User.updateOne(
@@ -47,24 +47,26 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
 
   const symbol = await Currency.find();
 
-  allowedFields.symbol = symbol[0].symbol;
+  allowedFields.symbol = symbol[0]?.symbol;
 
   await Transaction.create(allowedFields);
 
-  sendTransactionEmail(
-    allowedFields.user,
-    allowedFields.transactionType,
-    allowedFields.amount,
-    "",
-    allowedFields.account
-  );
+  if (!allowedFields.autoTransact) {
+    sendTransactionEmail(
+      allowedFields.user,
+      allowedFields.transactionType,
+      allowedFields.amount,
+      "",
+      allowedFields.account
+    );
 
-  notificationController.createNotification(
-    allowedFields.user.username,
-    allowedFields.transactionType,
-    allowedFields.date,
-    allowedFields.dateCreated
-  );
+    notificationController.createNotification(
+      allowedFields.user.username,
+      allowedFields.transactionType,
+      allowedFields.date,
+      allowedFields.dateCreated
+    );
+  }
 
   res.status(200).json({
     status: "success",
@@ -194,19 +196,14 @@ exports.approveTransaction = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteTransaction = catchAsync(async (req, res, next) => {
-  const filesToDelete = [];
-
-  const transaction = await Transaction.findById(req.params.id);
-
-  await Transaction.findByIdAndDelete(req.params.id);
+  const transaction = await Transaction.findByIdAndDelete(req.params.id);
 
   if (!transaction) {
     return next(new AppError("No transaction found with that ID", 404));
   }
-
-  req.fileNames = filesToDelete;
-
-  next();
+  res.status(200).json({
+    status: "success",
+  });
 });
 
 const sendTransactionEmail = async (user, type, amount, pin, account) => {

@@ -5,6 +5,7 @@ const transactionSchema = new mongoose.Schema({
   username: String,
   account: Object,
   amount: Number,
+  autoTransact: Boolean,
   transactionType: String,
   receiverName: String,
   receiverBank: String,

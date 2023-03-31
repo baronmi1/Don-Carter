@@ -2,6 +2,7 @@ const { token } = require("morgan");
 const User = require("../models/userModel");
 const Related = require("../models/relatedModel");
 const Account = require("../models/accountsModel");
+const Transaction = require("../models/transactionModel");
 const AppError = require("../utils/appError");
 const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
@@ -112,6 +113,9 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
   const user = await User.findByIdAndDelete(req.params.id);
   await Related.findOneAndDelete({ username: user.username });
   await Account.findOneAndDelete({ username: user.username });
+  await Transaction.deleteMany({
+    $or: [{ username: user.username, receiverUsername: user.username }],
+  });
 
   next();
 });

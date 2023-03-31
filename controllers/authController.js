@@ -75,6 +75,7 @@ exports.signup = catchAsync(async (req, res, next) => {
       currency: newUser.currency,
       accountNumber: getAccountNumber(),
       balance: 0,
+      accountType: "Savings",
     };
     await Account.create(accountDetails);
 
@@ -350,6 +351,7 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
     currency: user.currency,
     accountNumber: getAccountNumber(),
     balance: 0,
+    accountType: "Savings",
   };
 
   const account = await Account.create(accountDetails);
