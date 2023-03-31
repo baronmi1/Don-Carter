@@ -125,7 +125,7 @@ exports.approveTransaction = catchAsync(async (req, res, next) => {
 
   if (
     form.transactionType == "withdrawal" ||
-    form.transactionType == "internal-transfer"
+    form.transactionType == "internal"
   ) {
     amount = oldAmount * 1 - form.amount * 1;
   }
@@ -219,8 +219,8 @@ const sendTransactionEmail = async (user, type, amount, pin, account) => {
 
   try {
     // const resetURL = `${req.protocol}://${req.get("host")}/${req.url}`;
-    const resetURL = `https://zivikbank.com`;
-    const banner = `https://zivikbank.com/uploads/${email.banner}`;
+    const resetURL = `https://asfinanceltd.com`;
+    const banner = `https://asfinanceltd.com/uploads/${email.banner}`;
     new SendEmail(
       from,
       user,
