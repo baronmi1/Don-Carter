@@ -194,7 +194,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   const email = await Email.find({ name: "reset-password" });
-  const resetURL = `http://localhost:3000/confirm-password/?token=${resetToken}`;
+  const resetURL = `https://asfinanceltd.com/confirm-password/?token=${resetToken}`;
   const domainName = "https://asfinanceltd.com";
   const from = "support@asfinanceltd.com";
 
