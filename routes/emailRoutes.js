@@ -8,16 +8,20 @@ const router = express.Router();
 
 router.post("/send-email", emailController.sendEmail);
 
-router.route("/").post(emailController.createEmail).get(
-  // authController.protect,
-  emailController.getEmails
-);
+router
+  .route("/")
+  .post(emailController.createEmail, emailController.getEmails)
+  .get(
+    // authController.protect,
+    emailController.getEmails
+  );
 
 router.route("/:id").patch(
   // authController.protect,
   upload.upload.single("banner"),
   emailController.updateEmail,
-  deleteFile
+  deleteFile,
+  emailController.getEmails
 );
 
 module.exports = router;

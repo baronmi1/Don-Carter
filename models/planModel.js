@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const planSchema = new mongoose.Schema({
   planName: {
     type: String,
-    unique: true,
+    unique: [true, "A plan with this name already exist"],
   },
   planPeriod: {
     type: String,
@@ -20,10 +20,7 @@ const planSchema = new mongoose.Schema({
   planBanner: String,
   planDescription: String,
   planTags: Array,
-  dateCreated: {
-    type: Number,
-    default: new Date().getTime(),
-  },
+  time: Number,
 });
 
 const Plan = mongoose.model("Plan", planSchema);

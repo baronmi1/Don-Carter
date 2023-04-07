@@ -9,6 +9,10 @@ const signupSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  age: {
+    type: Boolean,
+    default: false,
+  },
   origin: {
     type: Boolean,
     default: false,

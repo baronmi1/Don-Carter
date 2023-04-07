@@ -91,7 +91,7 @@ exports.getRelatedData = catchAsync(async (req, res, next) => {
   const related = await Related.findOne({ username: req.params.username });
 
   if (!related) {
-    return next(new AppError("No user found with that ID", 404));
+    return next(new AppError("No user found with that username", 404));
   }
   res.status(200).json({
     status: "success",

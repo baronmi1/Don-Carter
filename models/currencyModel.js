@@ -8,13 +8,10 @@ const currencySchema = new mongoose.Schema({
   },
   address: String,
   description: String,
+  time: Number,
   status: {
     type: Boolean,
     default: false,
-  },
-  dateCreated: {
-    type: Number,
-    default: new Date().getTime(),
   },
 });
 

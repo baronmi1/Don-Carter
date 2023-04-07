@@ -26,13 +26,15 @@ router
     // authController.protect,
     upload.upload.single("symbol"),
     currencyController.updateCurrency,
-    deleteFile
+    deleteFile,
+    currencyController.getCurrencies
   )
   .delete(
     // authController.protect,
     // authController.restrictTo("room"),
     currencyController.deleteCurrency,
-    deleteFile
+    deleteFile,
+    currencyController.getCurrencies
   );
 
 module.exports = router;

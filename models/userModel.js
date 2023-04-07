@@ -33,13 +33,6 @@ const userSchema = new mongoose.Schema({
     trim: true,
   },
 
-  profilePicture: String,
-  identity: String,
-  idPicture: String,
-  dob: Number,
-  pin: Number,
-  currency: String,
-
   phoneNumber1: {
     type: String,
     required: [true, "Please fill in your phone number"],
@@ -65,32 +58,6 @@ const userSchema = new mongoose.Schema({
     default: 0,
   },
 
-  status: {
-    type: String,
-    enum: ["Staff", "User"],
-    default: "User",
-  },
-
-  staffType: {
-    type: String,
-    default: "User",
-  },
-
-  reviewStatus: {
-    type: Boolean,
-    default: false,
-  },
-
-  rating: {
-    type: Number,
-    default: 3.0,
-  },
-
-  review: {
-    type: String,
-    default: "",
-  },
-
   password: {
     type: String,
     required: [true, "Please fill in your password"],
@@ -110,6 +77,11 @@ const userSchema = new mongoose.Schema({
     },
   },
 
+  profilePicture: String,
+  identity: String,
+  idPicture: String,
+  dob: Number,
+  pin: Number,
   regDate: Number,
   referrals: Array,
   passwordChangedAt: Date,
@@ -118,7 +90,7 @@ const userSchema = new mongoose.Schema({
 
   suspension: {
     type: Boolean,
-    default: false,
+    default: true,
   },
 
   active: {

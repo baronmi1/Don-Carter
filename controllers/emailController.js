@@ -5,32 +5,21 @@ const AppError = require("../utils/appError");
 const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
 
-exports.createEmail = catchAsync(async (req, res) => {
+exports.createEmail = catchAsync(async (req, res, next) => {
   const { doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8, doc9 } = req.body;
 
-  const emails = await Email.create([
-    doc1,
-    doc2,
-    doc3,
-    doc4,
-    doc5,
-    doc6,
-    doc7,
-    doc8,
-    doc9,
-  ]);
+  await Email.create([doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8, doc9]);
 
-  res.status(200).json({
-    status: "success",
-    // data: emails,
-  });
+  next();
 });
 
-exports.getEmails = catchAsync(async (req, res, next) => {
+exports.getEmails = catchAsync(async (req, res) => {
   const result = new APIFeatures(Email.find(), req.query)
     .filter()
     .sort()
     .limitFields();
+
+  const resultLen = await result.query;
 
   const features = result.paginate();
 
@@ -39,6 +28,7 @@ exports.getEmails = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     data: email,
+    resultLength: resultLen.length,
   });
 });
 
@@ -52,7 +42,7 @@ exports.updateEmail = catchAsync(async (req, res, next) => {
     filesToDelete.push(oldEmail.banner);
   }
 
-  const email = await Email.findByIdAndUpdate(req.params.id, allowedFields, {
+  await Email.findByIdAndUpdate(req.params.id, allowedFields, {
     new: true,
     runValidators: true,
     useFindAndModify: false,
@@ -100,56 +90,4 @@ exports.sendEmail = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
   });
-});
-
-exports.deleteEmail = catchAsync(async (req, res, next) => {
-  const filesToDelete = [];
-
-  const email = await Email.findById(req.params.id);
-
-  await Email.findByIdAndDelete(req.params.id);
-
-  if (!email) {
-    return next(new AppError("No email found with that ID", 404));
-  }
-
-  filesToDelete.push(email.banner);
-
-  req.fileNames = filesToDelete;
-
-  next();
-});
-
-exports.sendTransactionEmail = catchAsync(async (user, type, amount, pin) => {
-  console.log(type, amount, pin);
-  // const email = await Email.findOne({ title: type });
-  // const company = await Company.find();
-
-  // // const from = `${company[0].systemEmail}`;
-  // const from = `info@zivikbank.com`;
-  // const content = email.content
-  //   .replace("{{amount}}", amount)
-  //   .replace("{{pin}}", pin)
-  //   .replace("{{currency}}", account.currency);
-  // try {
-  //   // const resetURL = `${req.protocol}://${req.get("host")}/${req.url}`;
-  //   const resetURL = `https://zivikbank.com`;
-  //   const banner = `https://zivikbank.com/uploads/${email.banner}`;
-  //   new SendEmail(
-  //     from,
-  //     user,
-  //     email.name,
-  //     email.title,
-  //     banner,
-  //     content,
-  //     email.headerColor,
-  //     email.footerColor,
-  //     email.mainColor,
-  //     email.greeting,
-  //     email.warning,
-  //     resetURL
-  //   ).sendEmail();
-  // } catch (err) {
-  //   return `There was an error sending the email. Try again later!, ${err}`;
-  // }
 });

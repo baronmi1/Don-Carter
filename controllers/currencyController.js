@@ -8,7 +8,7 @@ exports.createCurrency = catchAsync(async (req, res, next) => {
   if (req.file) {
     allowedFields.symbol = req.file.filename;
   }
-  const currency = await Currency.create(allowedFields);
+  await Currency.create(allowedFields);
 
   next();
 });
@@ -28,7 +28,7 @@ exports.getCurrencies = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     data: currencies,
-    length: resultLen.length,
+    resultLength: resultLen.length,
   });
 });
 

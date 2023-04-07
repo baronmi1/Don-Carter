@@ -8,12 +8,17 @@ const router = express.Router();
 
 router.route("/toggle-status/:id").patch(
   // authController.protect,
-  planController.togglePlanStatus
+  planController.togglePlanStatus,
+  planController.getPlans
 );
 
 router
   .route("/")
-  .post(upload.upload.single("planBanner"), planController.createPlan)
+  .post(
+    upload.upload.single("planBanner"),
+    planController.createPlan,
+    planController.getPlans
+  )
   .get(planController.getPlans);
 
 router
@@ -22,13 +27,15 @@ router
     // authController.protect,
     upload.upload.single("planBanner"),
     planController.updatePlan,
-    deleteFile
+    deleteFile,
+    planController.getPlans
   )
   .delete(
     // authController.protect,
     // authController.restrictTo("room"),
     planController.deletePlan,
-    deleteFile
+    deleteFile,
+    planController.getPlans
   );
 
 module.exports = router;

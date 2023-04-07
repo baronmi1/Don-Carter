@@ -3,25 +3,14 @@ const AppError = require("../utils/appError");
 const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
 
-exports.createPlan = catchAsync(async (req, res) => {
-  let savedFields = {
-    planName: req.body.planName,
-    planPeriod: req.body.planPeriod,
-    planDuration: req.body.planDuration,
-    planPercentage: req.body.planPercentage,
-    planMinimum: req.body.planMinimum,
-    planMaximum: req.body.planMaximum,
-    planBanner: req.file.filename,
-    planDescription: req.body.planDescription,
-    planTags: req.body.planTags,
-  };
+exports.createPlan = catchAsync(async (req, res, next) => {
+  if (req.file) {
+    req.body.planBanner = req.file.filename;
+  }
 
-  const plan = await Plan.create(savedFields);
+  const plan = await Plan.create(req.body);
 
-  res.status(200).json({
-    status: "success",
-    data: plan,
-  });
+  next();
 });
 
 exports.getPlans = catchAsync(async (req, res, next) => {
@@ -39,30 +28,20 @@ exports.getPlans = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     data: plans,
-    length: resultLen.length,
+    resultLength: resultLen.length,
   });
 });
 
 exports.updatePlan = catchAsync(async (req, res, next) => {
   let filesToDelete = [];
-  let allowedFields = {
-    planName: req.body.planName,
-    planPeriod: req.body.planPeriod,
-    planDuration: req.body.planDuration,
-    planPercentage: req.body.planPercentage,
-    planMinimum: req.body.planMinimum,
-    planMaximum: req.body.planMaximum,
-    planDescription: req.body.planDescription,
-    planTags: req.body.planTags,
-  };
 
   if (req.file) {
-    allowedFields.planBanner = req.file.filename;
+    req.body.planBanner = req.file.filename;
     const oldPlan = await Plan.findById(req.params.id);
     filesToDelete.push(oldPlan.planBanner);
   }
 
-  await Plan.findByIdAndUpdate(req.params.id, allowedFields, {
+  await Plan.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
     useFindAndModify: false,
@@ -74,16 +53,13 @@ exports.updatePlan = catchAsync(async (req, res, next) => {
 });
 
 exports.togglePlanStatus = catchAsync(async (req, res, next) => {
-  console.log(req.body);
   await Plan.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
     useFindAndModify: false,
   });
 
-  res.status(200).json({
-    status: "success",
-  });
+  next();
 });
 
 exports.deletePlan = catchAsync(async (req, res, next) => {

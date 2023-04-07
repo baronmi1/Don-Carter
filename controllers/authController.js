@@ -2,8 +2,9 @@ const crypto = require("crypto");
 const { promisify } = require("util");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
+const Signup = require("../models/signupModel");
+const Company = require("../models/companyModel");
 const Related = require("../models/relatedModel");
-const Account = require("../models/accountsModel");
 const Email = require("../models/emailModel");
 const AppError = require("../utils/appError");
 const SendEmail = require("../utils/email");
@@ -38,128 +39,134 @@ const createSendToken = (user, statusCode, res) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
-  if (req.files.profilePicture && req.files.idPicture) {
-    req.body.profilePicture = req.files.profilePicture[0].filename;
-    req.body.idPicture = req.files.idPicture[0].filename;
+  const data = req.body;
+
+  if (data.autoRegister) {
+    data.suspension = true;
+    const user = await User.create(data);
+    await Related.create(data);
+    createSendToken(user, 201, res);
   } else {
-    return next(new AppError(`Please upload the necessary documents!`, 500));
-  }
+    const signupResult = await Signup.find();
+    const signup = signupResult[0];
 
-  req.body.suspension = true;
-
-  const existingUsers = await User.find();
-
-  if (existingUsers.length == 0) {
-    req.body.staffType = "Admin";
-    req.body.status = "Staff";
-  }
-
-  const user = await User.create(req.body);
-  const related = await Related.create(req.body);
-
-  if (req.body.autoRegister) {
-    const getAccountNumber = () => {
-      let min = 10000000;
-      let max = 99999999;
-
-      let random_number = Math.floor(Math.random() * (max - min + 1)) + min; // generates an 8-digit number
-      return "00" + random_number.toString(); // adds two leading zeros
-    };
-    const newUser = await User.findByIdAndUpdate(user._id, {
-      suspension: false,
-    });
-
-    const accountDetails = {
-      fullName: `${newUser.firstName} ${newUser.middleName} ${newUser.lastName}`,
-      username: newUser.username,
-      currency: newUser.currency,
-      accountNumber: getAccountNumber(),
-      balance: 0,
-      accountType: "Savings",
-    };
-    await Account.create(accountDetails);
-
-    res.status(200).json({
-      status: "success",
-    });
-    return;
-  }
-
-  // GET THE EMAIL AND THE USERS TO SEND TO
-  const email = await Email.find({ name: "confirm-registration" });
-  const users = [user];
-
-  // const resetURL = `${req.protocol}://${req.get(
-  //   "host"
-  // )}/api/vi/users/resetPassword/?token=${resetToken}`;
-
-  // CALL THE EMAIL METHOD AND SEND THE EMAIL
-  const from = `info@asfinanceltd.com`;
-
-  // const domainName = "http://localhost:3000";
-  const domainName = "https://asfinanceltd.com";
-
-  users.forEach((user) => {
-    try {
-      const resetURL = `${domainName}/confirm-registration?token=${user._id}`;
-
-      const banner = `${domainName}/uploads/${email[0]?.banner}`;
-      new SendEmail(
-        from,
-        user,
-        email[0]?.name,
-        email[0]?.title,
-        banner,
-        email[0]?.content,
-        email[0]?.headerColor,
-        email[0]?.footerColor,
-        email[0]?.mainColor,
-        email[0]?.greeting,
-        email[0]?.warning,
-        resetURL
-      ).sendEmail();
-    } catch (err) {
-      return next(
-        new AppError(
-          `There was an error sending the email. Try again later!, ${err}`,
-          500
-        )
-      );
+    //--------CHECK USER DOCUMENT-------------
+    if (signup.identity) {
+      if (req.files.profilePicture && req.files.idPicture) {
+        data.profilePicture = req.files.profilePicture[0].filename;
+        data.idPicture = req.files.idPicture[0].filename;
+      } else {
+        return next(
+          new AppError(`Please upload the necessary documents!`, 500)
+        );
+      }
     }
-  });
 
-  // createSendToken(user, 201, res);
+    //--------CHECK USER RESIDENCE-------------
+    if (signup.residence) {
+      if (
+        data.residentAddress1 == "" ||
+        data.residentDestrict == "" ||
+        data.residentZipCode == "" ||
+        data.residentState == "Select State" ||
+        data.residentCountry == "Select Country"
+      ) {
+        return next(
+          new AppError(`Please fill in all residential information!`, 500)
+        );
+      }
+    }
 
-  res.status(200).json({
-    status: "success",
-    data: user,
-  });
+    //--------CHECK USER ORIGIN-------------
+    if (signup.origin) {
+      if (
+        data.originAddress1 == "" ||
+        data.originDestrict == "" ||
+        data.originZipCode == "" ||
+        data.originState == "Select State" ||
+        data.originCountry == "Select Country"
+      ) {
+        return next(
+          new AppError(`Please fill in all information of origin!`, 500)
+        );
+      }
+    }
+
+    //----------CHECK FOR EMAIL---------------
+    if (signup.email) {
+      data.suspension = true;
+    }
+
+    const user = await User.create(data);
+    await Related.create(data);
+
+    if (signup.email) {
+      const emailResult = await Email.find({ name: "confirm-registration" });
+      const email = emailResult[0];
+      const companyResult = await Company.find();
+      const company = companyResult[0];
+
+      const content = email.content
+        .replace("{{company-name}}", company.companyName)
+        .replace("{{fullName}}", `${user.firstName} ${user.lastName}`);
+      const from = company.systemEmail;
+      const domainName = company.companyDomain;
+
+      try {
+        const resetURL = `${domainName}/confirm-registration?token=${user._id}`;
+        const banner = `${domainName}/uploads/${email.banner}`;
+        new SendEmail(
+          from,
+          user,
+          email.template,
+          email.title,
+          banner,
+          content,
+          email.headerColor,
+          email.footerColor,
+          email.mainColor,
+          email.greeting,
+          email.warning,
+          resetURL
+        ).sendEmail();
+      } catch (err) {
+        return next(
+          new AppError(
+            `There was an error sending the email. Try again later!, ${err}`,
+            500
+          )
+        );
+      }
+    }
+
+    createSendToken(user, 201, res);
+  }
 });
 
 exports.login = catchAsync(async (req, res, next) => {
   const { username, password } = req.body;
-  //1) check if email and password exist
+
   if (!username || !password) {
     return next(new AppError("Please provide username and password!", 400));
   }
 
-  //2) check if user exists && password is correct
   const user = await User.findOne({ username }).select("+password");
 
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError("Incorrect username or password", 401));
   }
 
+  const company = await Company.find();
+
   if (user.suspension) {
     return next(
       new AppError(
-        "Activate your account by verifying the Zivik email sent to you",
+        `Activate your account by verifying the ${company[0].companyName} email sent to you`,
         401
       )
     );
   }
 
-  //3) if everything is ok, send token to client
   createSendToken(user, 200, res);
 });
 

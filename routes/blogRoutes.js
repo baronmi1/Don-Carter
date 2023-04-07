@@ -21,6 +21,7 @@ router
   .patch(
     upload.upload.single("banner"),
     blogController.updateBlog,
+    deleteFile,
     blogController.getBlog
   )
   .delete(blogController.deleteBlog, deleteFile, blogController.getBlog);

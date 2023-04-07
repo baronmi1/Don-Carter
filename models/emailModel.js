@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const emailSchema = new mongoose.Schema({
   banner: String,
-  name: String,
+  template: String,
   title: String,
   content: String,
   headerColor: String,
@@ -10,10 +10,7 @@ const emailSchema = new mongoose.Schema({
   mainColor: String,
   greeting: String,
   warning: String,
-  dateCreated: {
-    type: Number,
-    default: new Date().getTime(),
-  },
+  time: Number,
 });
 
 const Email = mongoose.model("Email", emailSchema);

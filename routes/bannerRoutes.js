@@ -2,6 +2,7 @@ const express = require("express");
 const bannerController = require("../controllers/bannerController");
 const upload = require("../config/multer");
 const authController = require("../controllers/authController");
+const deleteFile = require("../utils/deleteFile");
 
 const router = express.Router();
 
@@ -19,8 +20,13 @@ router
   .patch(
     upload.upload.single("bannerImage"),
     bannerController.updateBanner,
+    deleteFile,
     bannerController.getBanner
   )
-  .delete(bannerController.deleteBanner, bannerController.getBanner);
+  .delete(
+    bannerController.deleteBanner,
+    deleteFile,
+    bannerController.getBanner
+  );
 
 module.exports = router;
