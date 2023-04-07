@@ -3,16 +3,13 @@ const AppError = require("../utils/appError");
 const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
 
-exports.createBanner = catchAsync(async (req, res) => {
+exports.createBanner = catchAsync(async (req, res, next) => {
   if (req.file) {
     req.body.bannerImage = req.file.filename;
   }
   const banner = await Banner.create(req.body);
 
-  res.status(200).json({
-    status: "success",
-    data: banner,
-  });
+  next();
 });
 
 exports.getBanner = catchAsync(async (req, res, next) => {
@@ -30,21 +27,18 @@ exports.getBanner = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     data: banner,
-    length: resultLen.length,
+    resultLength: resultLen.length,
   });
 });
 
 exports.updateBanner = catchAsync(async (req, res, next) => {
-  // req.body.bannerImage = JSON.parse(req.body.bannerImage);
   await Banner.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
     useFindAndModify: false,
   });
 
-  res.status(200).json({
-    status: "success",
-  });
+  next();
 });
 
 exports.deleteBanner = catchAsync(async (req, res, next) => {
@@ -53,7 +47,5 @@ exports.deleteBanner = catchAsync(async (req, res, next) => {
   if (!banner) {
     return next(new AppError("No banner found with that ID", 404));
   }
-  res.status(200).json({
-    status: "success",
-  });
+  next();
 });

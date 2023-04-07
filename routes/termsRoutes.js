@@ -6,19 +6,21 @@ const router = express.Router();
 
 router
   .route("/")
-  .post(termsController.createTerms)
+  .post(termsController.createTerms, termsController.getTerms)
   .get(termsController.getTerms);
 
 router
   .route("/:id")
   .patch(
     // authController.protect,
-    termsController.updateTerms
+    termsController.updateTerms,
+    termsController.getTerms
   )
   .delete(
     // authController.protect,
     // authController.restrictTo("room"),
-    termsController.deleteTerms
+    termsController.deleteTerms,
+    termsController.getTerms
   );
 
 module.exports = router;

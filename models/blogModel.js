@@ -6,17 +6,11 @@ const blogSchema = new mongoose.Schema({
   title: String,
   subtitle: String,
   banner: String,
-  date: {
-    type: Number,
-    default: new Date().getTime(),
-  },
+  time: Number,
   author: String,
   content: String,
   day: String,
-  visibility: {
-    type: String,
-    default: "Public",
-  },
+  type: String,
   status: {
     type: Boolean,
     default: false,

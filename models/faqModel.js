@@ -8,10 +8,7 @@ const faqSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  dateCreated: {
-    type: Number,
-    default: new Date().getTime(),
-  },
+  time: Number,
 });
 
 const FAQ = mongoose.model("FAQ", faqSchema);

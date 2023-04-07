@@ -3,13 +3,9 @@ const AppError = require("../utils/appError");
 const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
 
-exports.createTerms = catchAsync(async (req, res) => {
-  const terms = await Terms.create(req.body);
-
-  res.status(200).json({
-    status: "success",
-    data: terms,
-  });
+exports.createTerms = catchAsync(async (req, res, next) => {
+  await Terms.create(req.body);
+  next();
 });
 
 exports.getTerms = catchAsync(async (req, res, next) => {
@@ -27,7 +23,7 @@ exports.getTerms = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     data: terms,
-    length: resultLen.length,
+    resultLength: resultLen.length,
   });
 });
 
@@ -38,21 +34,15 @@ exports.updateTerms = catchAsync(async (req, res, next) => {
     useFindAndModify: false,
   });
 
-  res.status(200).json({
-    status: "success",
-  });
+  next();
 });
 
 exports.deleteTerms = catchAsync(async (req, res, next) => {
-  const terms = await Terms.findById(req.params.id);
-
-  await Terms.findByIdAndDelete(req.params.id);
+  const terms = await Terms.findByIdAndDelete(req.params.id);
 
   if (!terms) {
     return next(new AppError("No terms found with that ID", 404));
   }
 
-  res.status(200).json({
-    status: "success",
-  });
+  next();
 });

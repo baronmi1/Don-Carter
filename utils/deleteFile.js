@@ -1,5 +1,5 @@
 const fs = require("fs");
-const deleteFile = (req, res) => {
+const deleteFile = (req, res, next) => {
   let filenames = req.fileNames;
   if (!Array.isArray(filenames)) {
     filenames = new Array(filenames);
@@ -20,10 +20,7 @@ const deleteFile = (req, res) => {
     user: "";
   }
 
-  res.status(200).json({
-    status: "success",
-    user,
-  });
+  next();
 };
 
 module.exports = deleteFile;

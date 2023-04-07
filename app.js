@@ -7,37 +7,39 @@ const xss = require("xss-clean");
 const cors = require("cors");
 const globalErrorHandler = require("./controllers/errorController");
 
-const planRouter = require("./routes/planRoutes");
-const userRouter = require("./routes/userRoutes");
-const emailRouter = require("./routes/emailRoutes");
-const currencyRouter = require("./routes/currencyRoutes");
-const transactionRouter = require("./routes/transactionRoutes");
-const companyRouter = require("./routes/companyRoutes");
-const bannerRouter = require("./routes/bannerRoutes");
-const faqRouter = require("./routes/faqRoutes");
-const termsRouter = require("./routes/termsRoutes");
-const cardRouter = require("./routes/cardRoutes");
-const blogRouter = require("./routes/blogRoutes");
 const accountRouter = require("./routes/accountRoutes");
 const aboutRouter = require("./routes/aboutRoutes");
+const bannerRouter = require("./routes/bannerRoutes");
+const blogRouter = require("./routes/blogRoutes");
+const cardRouter = require("./routes/cardRoutes");
+const companyRouter = require("./routes/companyRoutes");
+const currencyRouter = require("./routes/currencyRoutes");
+const emailRouter = require("./routes/emailRoutes");
+const faqRouter = require("./routes/faqRoutes");
+const planRouter = require("./routes/planRoutes");
+const signupRouter = require("./routes/signupRoutes");
+const transactionRouter = require("./routes/transactionRoutes");
+const termsRouter = require("./routes/termsRoutes");
+const userRouter = require("./routes/userRoutes");
+
 dotenv.config({ path: "./config.env" });
 
-const chokidar = require("chokidar");
+// const chokidar = require("chokidar");
 
-const watcher = chokidar.watch(
-  "/app/controllers/transactionController.js",
-  "/app/utils/email.js",
-  "/app/app.js",
-  {
-    ignored: /[\/\\]\./, // ignore dotfiles
-    persistent: true, // keep the process running
-  }
-);
+// const watcher = chokidar.watch(
+//   "/app/controllers/transactionController.js",
+//   "/app/utils/email.js",
+//   "/app/app.js",
+//   {
+//     ignored: /[\/\\]\./, // ignore dotfiles
+//     persistent: true, // keep the process running
+//   }
+// );
 
-watcher
-  .on("add", (path) => console.log(`File ${path} has been added`))
-  .on("change", (path) => console.log(`File ${path} has been changed`))
-  .on("unlink", (path) => console.log(`File ${path} has been removed`));
+// watcher
+//   .on("add", (path) => console.log(`File ${path} has been added`))
+//   .on("change", (path) => console.log(`File ${path} has been changed`))
+//   .on("unlink", (path) => console.log(`File ${path} has been removed`));
 
 const app = express();
 const server = require("http").createServer(app);
@@ -62,19 +64,20 @@ app.use(bodyParser.json());
 
 app.use(morgan("dev")); // configire morgan
 
-app.use("/api/plans", planRouter);
-app.use("/api/users", userRouter);
-app.use("/api/emails", emailRouter);
-app.use("/api/currency", currencyRouter);
-app.use("/api/transactions", transactionRouter);
-app.use("/api/company", companyRouter);
-app.use("/api/banner", bannerRouter);
-app.use("/api/faq", faqRouter);
-app.use("/api/terms", termsRouter);
-app.use("/api/card", cardRouter);
-app.use("/api/blog", blogRouter);
-app.use("/api/account", accountRouter);
 app.use("/api/about", aboutRouter);
+app.use("/api/account", accountRouter);
+app.use("/api/banner", bannerRouter);
+app.use("/api/blog", blogRouter);
+app.use("/api/card", cardRouter);
+app.use("/api/company", companyRouter);
+app.use("/api/currency", currencyRouter);
+app.use("/api/emails", emailRouter);
+app.use("/api/faq", faqRouter);
+app.use("/api/plans", planRouter);
+app.use("/api/signup", signupRouter);
+app.use("/api/terms", termsRouter);
+app.use("/api/transactions", transactionRouter);
+app.use("/api/users", userRouter);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "/dist/")));

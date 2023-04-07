@@ -7,10 +7,7 @@ const termsSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  dateCreated: {
-    type: Number,
-    default: new Date().getTime(),
-  },
+  time: Number,
 });
 
 const Terms = mongoose.model("Terms", termsSchema);

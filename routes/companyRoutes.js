@@ -14,7 +14,8 @@ router
       { name: "mediaIcon", maxCount: 20 },
       { name: "coloredMediaIcon", maxCount: 20 },
     ]),
-    companyController.createCompany
+    companyController.createCompany,
+    companyController.getCompany
   )
   .get(companyController.getCompany);
 
@@ -27,7 +28,8 @@ router.route("/:id").patch(
     { name: "coloredMediaIcon", maxCount: 20 },
   ]),
   companyController.updateCompany,
-  deleteFile
+  deleteFile,
+  companyController.getCompany
 );
 
 module.exports = router;

@@ -7,12 +7,20 @@ const router = express.Router();
 
 router
   .route("/")
-  .post(upload.upload.single("bannerImage"), bannerController.createBanner)
+  .post(
+    upload.upload.single("bannerImage"),
+    bannerController.createBanner,
+    bannerController.getBanner
+  )
   .get(bannerController.getBanner);
 
 router
   .route("/:id")
-  .patch(upload.upload.single("bannerImage"), bannerController.updateBanner)
-  .delete(bannerController.deleteBanner);
+  .patch(
+    upload.upload.single("bannerImage"),
+    bannerController.updateBanner,
+    bannerController.getBanner
+  )
+  .delete(bannerController.deleteBanner, bannerController.getBanner);
 
 module.exports = router;

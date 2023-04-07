@@ -3,15 +3,12 @@ const AppError = require("../utils/appError");
 const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
 
-exports.createBlog = catchAsync(async (req, res) => {
-  req.body.banner = req.file.filename;
-
+exports.createBlog = catchAsync(async (req, res, next) => {
+  if (req.file) {
+    req.body.banner = req.file.filename;
+  }
   const blog = await Blog.create(req.body);
-
-  res.status(200).json({
-    status: "success",
-    data: blog,
-  });
+  next();
 });
 
 exports.getBlog = catchAsync(async (req, res, next) => {
@@ -29,13 +26,16 @@ exports.getBlog = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     data: blog,
-    length: resultLen.length,
+    resultLength: resultLen.length,
   });
 });
 
 exports.updateBlog = catchAsync(async (req, res, next) => {
+  const filesToDelete = [];
   if (req.file) {
     req.body.banner = req.file.filename;
+    const oldBlog = await Blog.findById(req.params.id);
+    filesToDelete.push(oldBlog.banner);
   }
   await Blog.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
@@ -43,9 +43,8 @@ exports.updateBlog = catchAsync(async (req, res, next) => {
     useFindAndModify: false,
   });
 
-  res.status(200).json({
-    status: "success",
-  });
+  req.fileNames = filesToDelete;
+  next();
 });
 
 exports.getABlog = catchAsync(async (req, res, next) => {
@@ -58,12 +57,12 @@ exports.getABlog = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteBlog = catchAsync(async (req, res, next) => {
-  const blog = await Blog.findByIdAndDelete(req.params.id);
+  const filesToDelete = [];
+  const oldBlog = await Blog.findById(req.params.id);
+  await Blog.findByIdAndDelete(req.params.id);
 
-  if (!blog) {
-    return next(new AppError("No blog found with that ID", 404));
-  }
-  res.status(200).json({
-    status: "success",
-  });
+  filesToDelete.push(oldBlog.banner);
+  req.fileNames = filesToDelete;
+
+  next();
 });

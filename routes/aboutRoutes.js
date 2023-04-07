@@ -8,7 +8,11 @@ const router = express.Router();
 
 router
   .route("/")
-  .post(upload.upload.single("certificate"), aboutController.createAbout)
+  .post(
+    upload.upload.single("certificate"),
+    aboutController.createAbout,
+    aboutController.getAbout
+  )
   .get(aboutController.getAbout);
 
 router
@@ -17,7 +21,8 @@ router
     authController.protect,
     upload.upload.single("certificate"),
     aboutController.updateAbout,
-    deleteFile
+    deleteFile,
+    aboutController.getAbout
   );
 
 module.exports = router;

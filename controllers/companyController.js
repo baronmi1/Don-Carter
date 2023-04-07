@@ -19,16 +19,18 @@ exports.createCompany = catchAsync(async (req, res, next) => {
   } else {
     socialTextArray = req.body.socialText;
   }
-  for (let i = 0; i < req.files.socialIcon.length; i++) {
-    const socialObj = {
-      icon: "",
-      text: "",
-    };
+  if (req.files.socialIcon) {
+    for (let i = 0; i < req.files.socialIcon.length; i++) {
+      const socialObj = {
+        icon: "",
+        text: "",
+      };
 
-    socialObj.icon = req.files.socialIcon[i].filename;
-    socialObj.text = socialTextArray[i];
+      socialObj.icon = req.files.socialIcon[i].filename;
+      socialObj.text = socialTextArray[i];
 
-    socialArray.push(socialObj);
+      socialArray.push(socialObj);
+    }
   }
   savedFields.socials = socialArray;
 
@@ -42,16 +44,18 @@ exports.createCompany = catchAsync(async (req, res, next) => {
   } else {
     coloredSocialTextArray = req.body.coloredSocialText;
   }
-  for (let i = 0; i < req.files.coloredSocialIcon.length; i++) {
-    const socialObj = {
-      icon: "",
-      text: "",
-    };
+  if (req.files.coloredSocialIcon) {
+    for (let i = 0; i < req.files.coloredSocialIcon.length; i++) {
+      const socialObj = {
+        icon: "",
+        text: "",
+      };
 
-    socialObj.icon = req.files.coloredSocialIcon[i].filename;
-    socialObj.text = coloredSocialTextArray[i];
+      socialObj.icon = req.files.coloredSocialIcon[i].filename;
+      socialObj.text = coloredSocialTextArray[i];
 
-    coloredSocialArray.push(socialObj);
+      coloredSocialArray.push(socialObj);
+    }
   }
   savedFields.coloredSocials = coloredSocialArray;
   //  --------------------------------------------------
@@ -64,16 +68,18 @@ exports.createCompany = catchAsync(async (req, res, next) => {
   } else {
     mediaTextArray = req.body.mediaText;
   }
-  for (let i = 0; i < req.files.mediaIcon.length; i++) {
-    const mediaObj = {
-      icon: "",
-      text: "",
-    };
+  if (req.files.mediaIcon) {
+    for (let i = 0; i < req.files.mediaIcon.length; i++) {
+      const mediaObj = {
+        icon: "",
+        text: "",
+      };
 
-    mediaObj.icon = req.files.mediaIcon[i].filename;
-    mediaObj.text = mediaTextArray[i];
+      mediaObj.icon = req.files.mediaIcon[i].filename;
+      mediaObj.text = mediaTextArray[i];
 
-    mediaArray.push(mediaObj);
+      mediaArray.push(mediaObj);
+    }
   }
   savedFields.media = mediaArray;
   //  --------------------------------------------------
@@ -86,41 +92,33 @@ exports.createCompany = catchAsync(async (req, res, next) => {
   } else {
     coloredMediaTextArray = req.body.coloredMediaText;
   }
-  for (let i = 0; i < req.files.coloredMediaIcon.length; i++) {
-    const mediaObj = {
-      icon: "",
-      text: "",
-    };
+  if (req.files.coloredMediaIcon) {
+    for (let i = 0; i < req.files.coloredMediaIcon.length; i++) {
+      const mediaObj = {
+        icon: "",
+        text: "",
+      };
 
-    mediaObj.icon = req.files.coloredMediaIcon[i].filename;
-    mediaObj.text = coloredMediaTextArray[i];
+      mediaObj.icon = req.files.coloredMediaIcon[i].filename;
+      mediaObj.text = coloredMediaTextArray[i];
 
-    coloredMediaArray.push(mediaObj);
+      coloredMediaArray.push(mediaObj);
+    }
   }
   savedFields.coloredMedia = coloredMediaArray;
   //  --------------------------------------------------
 
-  const newCompany = await Company.create(savedFields);
+  await Company.create(savedFields);
 
-  res.status(200).json({
-    status: "success",
-    data: newCompany,
-  });
+  next();
 });
 
 exports.getCompany = catchAsync(async (req, res, next) => {
-  const result = new APIFeatures(Company.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields();
-
-  const features = result.paginate();
-
-  const company = await features.query.clone();
+  const company = await Company.find();
 
   res.status(200).json({
     status: "success",
-    data: company,
+    data: company[0],
   });
 });
 
@@ -248,9 +246,7 @@ exports.updateCompany = catchAsync(async (req, res, next) => {
 
   allowedFields.coloredMedia = coloredMediaArray;
   allowedFields.companyName = req.body.companyName;
-  allowedFields.companyAccountName = req.body.companyAccountName;
-  allowedFields.companyAccountNumber = req.body.companyAccountNumber;
-  allowedFields.companyBankName = req.body.companyBankName;
+  allowedFields.companyDomain = req.body.companyDomain;
   allowedFields.systemEmail = req.body.systemEmail;
 
   const newCompany = await Company.findByIdAndUpdate(

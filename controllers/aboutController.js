@@ -3,15 +3,13 @@ const AppError = require("../utils/appError");
 const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
 
-exports.createAbout = catchAsync(async (req, res) => {
-  req.body.certificate = req.file.filename;
-
+exports.createAbout = catchAsync(async (req, res, next) => {
+  if (req.file) {
+    req.body.certificate = req.file.filename;
+  }
   const about = await About.create(req.body);
 
-  res.status(200).json({
-    status: "success",
-    data: about,
-  });
+  next();
 });
 
 exports.getAbout = catchAsync(async (req, res, next) => {
@@ -33,8 +31,6 @@ exports.getAbout = catchAsync(async (req, res, next) => {
 exports.updateAbout = catchAsync(async (req, res, next) => {
   let filesToDelete = [];
   let allowedFields = req.body;
-
-  console.log(req.body, req.file);
 
   if (req.file) {
     allowedFields.certificate = req.file.filename;

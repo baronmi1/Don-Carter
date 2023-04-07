@@ -4,18 +4,23 @@ const authController = require("../controllers/authController");
 
 const router = express.Router();
 
-router.route("/").post(faqController.createFAQ).get(faqController.getFAQ);
+router
+  .route("/")
+  .post(faqController.createFAQ, faqController.getFAQ)
+  .get(faqController.getFAQ);
 
 router
   .route("/:id")
   .patch(
     // authController.protect,
-    faqController.updateFAQ
+    faqController.updateFAQ,
+    faqController.getFAQ
   )
   .delete(
     // authController.protect,
     // authController.restrictTo("room"),
-    faqController.deleteFAQ
+    faqController.deleteFAQ,
+    faqController.getFAQ
   );
 
 module.exports = router;
