@@ -4,8 +4,11 @@ const notificationSchema = new mongoose.Schema({
   username: String,
   message: String,
   subject: String,
-  date: String,
-  dateCreated: Number,
+  time: Number,
+  read: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const Notification = mongoose.model("Notification", notificationSchema);

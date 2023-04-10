@@ -53,6 +53,15 @@ exports.updateCurrency = catchAsync(async (req, res, next) => {
   next();
 });
 
+exports.getACurrency = catchAsync(async (req, res, next) => {
+  const currency = await Currency.findById(req.params.id);
+
+  res.status(200).json({
+    status: "success",
+    data: currency,
+  });
+});
+
 exports.toggleCurrencyStatus = catchAsync(async (req, res, next) => {
   await Currency.findByIdAndUpdate(req.params.id, req.body, {
     new: true,

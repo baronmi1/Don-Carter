@@ -13,6 +13,7 @@ const planSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  planCycle: Number,
   planDuration: Number,
   planPercentage: Number,
   planMinimum: Number,

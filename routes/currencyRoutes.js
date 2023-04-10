@@ -35,6 +35,7 @@ router
     currencyController.deleteCurrency,
     deleteFile,
     currencyController.getCurrencies
-  );
+  )
+  .get(currencyController.getACurrency);
 
 module.exports = router;

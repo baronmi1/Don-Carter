@@ -3,23 +3,21 @@ const mongoose = require("mongoose");
 const transactionSchema = new mongoose.Schema({
   symbol: String,
   username: String,
-  account: Object,
   amount: Number,
   autoTransact: Boolean,
   transactionType: String,
-  receiverName: String,
-  receiverBank: String,
-  receiverAddress: String,
-  receiverUsername: String,
-  narration: String,
-  date: String,
+  planName: String,
+  planDuration: Number,
+  planPeriod: Number,
+  planCycle: Number,
+  percent: Number,
+  walletName: String,
+  walletId: String,
+  time: Number,
+  reinvest: Boolean,
   status: {
     type: Boolean,
     default: false,
-  },
-  dateCreated: {
-    type: Number,
-    default: new Date().getTime(),
   },
 });
 

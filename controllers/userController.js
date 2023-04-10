@@ -1,12 +1,14 @@
 const { token } = require("morgan");
 const User = require("../models/userModel");
 const Related = require("../models/relatedModel");
-const Account = require("../models/accountsModel");
-const Transaction = require("../models/transactionModel");
+// const Account = require("../models/accountsModel");
+// const Transaction = require("../models/transactionModel");
 const AppError = require("../utils/appError");
 const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
-const { ObjectId } = require("mongodb");
+const Email = require("../models/emailModel");
+const Company = require("../models/companyModel");
+const SendEmail = require("../utils/email");
 
 exports.getAllUsers = catchAsync(async (req, res, next) => {
   // 1A) FILTERING
@@ -51,12 +53,6 @@ exports.editUser = catchAsync(async (req, res, next) => {
   let files = [];
   const oldUser = await User.findById(req.params.id);
 
-  if (req.body.balance) {
-    await Account.findByIdAndUpdate(req.body.accountId, {
-      balance: req.body.balance,
-    });
-  }
-
   if (req.files.profilePicture) {
     if (req.files.profilePicture) {
       req.body.profilePicture = req.files.profilePicture[0].filename;
@@ -80,6 +76,47 @@ exports.editUser = catchAsync(async (req, res, next) => {
     return next(new AppError("No user found with that ID", 404));
   }
 
+  if (req.body.emailOption == "Yes") {
+    const companyResult = await Company.find();
+    const company = companyResult[0];
+    const email =
+      Number(req.body.withdraw) > 0
+        ? await Email.findOne({ template: "withdrawal-approval" })
+        : await Email.findOne({ template: "deposit-approval" });
+
+    const content = email.content
+      .replace("{{full-name}}", `${user.firstName} ${user.lastName}`)
+      .replace("{{amount}}", req.body.amount);
+    const domainName = company.companyDomain;
+    const resetURL = "";
+    const from = company.systemEmail;
+
+    try {
+      const banner = `${domainName}/uploads/${email.banner}`;
+      new SendEmail(
+        from,
+        user,
+        email.name,
+        email.title,
+        banner,
+        content,
+        email.headerColor,
+        email.footerColor,
+        email.mainColor,
+        email.greeting,
+        email.warning,
+        resetURL
+      ).sendEmail();
+    } catch (err) {
+      return next(
+        new AppError(
+          `There was an error sending the email. Try again later!, ${err}`,
+          500
+        )
+      );
+    }
+  }
+
   req.fileNames = files;
 
   req.user = user;
@@ -99,16 +136,6 @@ exports.getRelatedData = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.searchUser = async (req, res) => {
-  const account = await Account.findOne({
-    accountNumber: req.params.number,
-  });
-  res.status(200).json({
-    status: "success",
-    account: account,
-  });
-};
-
 exports.deleteUser = catchAsync(async (req, res, next) => {
   const user = await User.findByIdAndDelete(req.params.id);
   await Related.findOneAndDelete({ username: user.username });
@@ -119,3 +146,14 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
 
   next();
 });
+
+exports.fetchUsers = (io, socket) => {
+  socket.on("fetchUsers", async (item) => {
+    const limit = item.limit;
+    const users = await User.find({
+      username: { $regex: item.keyWord, $options: "$i" },
+      firstName: { $regex: item.keyWord, $options: "$i" },
+    }).limit(limit);
+    io.emit("fetchedUsers", users);
+  });
+};

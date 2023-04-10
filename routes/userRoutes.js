@@ -13,8 +13,6 @@ router.route("/activate-user/:id").patch(authController.activateAUser);
 
 router.route("/related/:username").get(userController.getRelatedData);
 
-router.get("/search-user/:number", userController.searchUser);
-
 router
   .route("/update-password")
   .patch(authController.protect, authController.updatePassword);
@@ -34,13 +32,14 @@ router
   .route("/:id")
   .get(userController.getAUser)
   .patch(
-    authController.protect,
-    upload.upload.single("image"),
+    // authController.protect,
+    upload.upload.fields([{ name: "profilePicture" }, { name: "idPicture" }]),
     userController.editUser,
-    deleteFile
+    deleteFile,
+    userController.getAllUsers
   )
   .delete(
-    authController.protect,
+    // authController.protect,
     // authController.restrictTo("room"),
     userController.deleteUser,
     userController.getAllUsers

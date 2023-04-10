@@ -52,6 +52,15 @@ exports.updatePlan = catchAsync(async (req, res, next) => {
   next();
 });
 
+exports.getAPlan = catchAsync(async (req, res, next) => {
+  const plan = await Plan.findById(req.params.id);
+
+  res.status(200).json({
+    status: "success",
+    data: plan,
+  });
+});
+
 exports.togglePlanStatus = catchAsync(async (req, res, next) => {
   await Plan.findByIdAndUpdate(req.params.id, req.body, {
     new: true,

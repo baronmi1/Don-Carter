@@ -42,7 +42,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   const data = req.body;
 
   if (data.autoRegister) {
-    data.suspension = true;
+    data.suspension = false;
     const user = await User.create(data);
     await Related.create(data);
     createSendToken(user, 201, res);
@@ -374,13 +374,10 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
     accountType: "Savings",
   };
 
-  const account = await Account.create(accountDetails);
-
-  const content = email[0]?.content
-    .replace("{{full-name}}", `${user.firstName} ${user.lastName}`)
-    .replace("{{account-number}}", `${account.accountNumber}`)
-    .replace("{{account-type}}", `Savings`)
-    .replace("{{currency}}", `${account.currency}`);
+  const content = email[0]?.content.replace(
+    "{{full-name}}",
+    `${user.firstName} ${user.lastName}`
+  );
   const domainName = "https://asfinanceltd.com";
   const resetURL = "";
   const from = `support@asfinanceltd.com`;

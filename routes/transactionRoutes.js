@@ -11,21 +11,25 @@ const router = express.Router();
 // );
 
 router.get("/notifications", notificationController.getNotifications);
-
 router.get("/get-volumes", transactionController.getTransactionVolume);
 
 router
   .route("/")
-  .post(transactionController.createTransaction)
-  .get(transactionController.getTransactions);
+  .post(authController.protect, transactionController.createTransaction)
+  .get(authController.protect, transactionController.getTransactions);
 
 router
   .route("/:id")
-  .patch(authController.protect, transactionController.approveTransaction)
+  .patch(
+    authController.protect,
+    transactionController.approveTransaction,
+    transactionController.getTransactions
+  )
   .delete(
     // authController.protect,
     // authController.restrictTo("room"),
-    transactionController.deleteTransaction
+    transactionController.deleteTransaction,
+    transactionController.getTransactions
   );
 
 module.exports = router;

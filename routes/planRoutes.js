@@ -36,6 +36,7 @@ router
     planController.deletePlan,
     deleteFile,
     planController.getPlans
-  );
+  )
+  .get(planController.getAPlan);
 
 module.exports = router;

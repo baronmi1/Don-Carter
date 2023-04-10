@@ -7,7 +7,6 @@ const xss = require("xss-clean");
 const cors = require("cors");
 const globalErrorHandler = require("./controllers/errorController");
 
-const accountRouter = require("./routes/accountRoutes");
 const aboutRouter = require("./routes/aboutRoutes");
 const bannerRouter = require("./routes/bannerRoutes");
 const blogRouter = require("./routes/blogRoutes");
@@ -21,7 +20,11 @@ const signupRouter = require("./routes/signupRoutes");
 const transactionRouter = require("./routes/transactionRoutes");
 const termsRouter = require("./routes/termsRoutes");
 const userRouter = require("./routes/userRoutes");
+const walletRouter = require("./routes/walletRoutes");
 
+const transaction = require("./controllers/transactionController");
+
+const userController = require("./controllers/userController");
 dotenv.config({ path: "./config.env" });
 
 // const chokidar = require("chokidar");
@@ -53,6 +56,7 @@ const io = require("socket.io")(server, {
 
 io.on("connection", (socket) => {
   console.log("connected");
+  userController.fetchUsers(io, socket);
 });
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -64,8 +68,13 @@ app.use(bodyParser.json());
 
 app.use(morgan("dev")); // configire morgan
 
+const checkActiveDeposits = () => {
+  transaction.checkActive();
+};
+
+checkActiveDeposits();
+
 app.use("/api/about", aboutRouter);
-app.use("/api/account", accountRouter);
 app.use("/api/banner", bannerRouter);
 app.use("/api/blog", blogRouter);
 app.use("/api/company", companyRouter);
@@ -78,6 +87,7 @@ app.use("/api/signup", signupRouter);
 app.use("/api/terms", termsRouter);
 app.use("/api/transactions", transactionRouter);
 app.use("/api/users", userRouter);
+app.use("/api/wallet", walletRouter);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "/dist/")));

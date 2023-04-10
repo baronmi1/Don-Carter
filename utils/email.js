@@ -7,6 +7,8 @@ dotenv.config({ path: "../config.env" });
 
 module.exports = class Email {
   constructor(
+    companyName,
+    domainName,
     from,
     user,
     name,
@@ -20,6 +22,8 @@ module.exports = class Email {
     warning,
     resetURL
   ) {
+    this.companyName = companyName;
+    this.domainName = domainName;
     this.from = from;
     this.user = user;
     this.name = name;
@@ -75,6 +79,8 @@ module.exports = class Email {
           name: this.user.username,
           resetURL: this.resetURL,
           from: this.from,
+          domainName: this.domainName,
+          companyName: this.companyName,
         },
       })
       .then((res) => {
