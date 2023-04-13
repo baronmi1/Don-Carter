@@ -8,6 +8,8 @@ const walletSchema = new mongoose.Schema({
   userId: String,
   walletAddress: String,
   symbol: String,
+  pendingWithdrawal: Number,
+  pendingDeposit: Number,
   time: Number,
 });
 

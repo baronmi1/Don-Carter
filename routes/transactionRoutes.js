@@ -12,21 +12,37 @@ const router = express.Router();
 
 router.get("/notifications", notificationController.getNotifications);
 router.get("/get-volumes", transactionController.getTransactionVolume);
+router.get("/active-deposits", transactionController.getActiveDeposits);
+router.get("/deposit-list", transactionController.getDepositList);
+router.patch(
+  "/approve-withdrawal/:id",
+  transactionController.approveWithdrawal,
+  transactionController.getTransactions
+);
+router.patch(
+  "/update-transaction/:id",
+  transactionController.updateTransaction,
+  transactionController.getTransactions
+);
 
 router
   .route("/")
-  .post(authController.protect, transactionController.createTransaction)
+  .post(
+    authController.protect,
+    transactionController.createTransaction,
+    transactionController.getTransactions
+  )
   .get(authController.protect, transactionController.getTransactions);
 
 router
   .route("/:id")
   .patch(
     authController.protect,
-    transactionController.approveTransaction,
+    transactionController.approveDeposit,
     transactionController.getTransactions
   )
   .delete(
-    // authController.protect,
+    authController.protect,
     // authController.restrictTo("room"),
     transactionController.deleteTransaction,
     transactionController.getTransactions

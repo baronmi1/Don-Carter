@@ -18,6 +18,7 @@ const planSchema = new mongoose.Schema({
   planPercentage: Number,
   planMinimum: Number,
   planMaximum: Number,
+  referralCommission: Number,
   planBanner: String,
   planDescription: String,
   planTags: Array,

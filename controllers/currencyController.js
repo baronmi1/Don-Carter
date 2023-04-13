@@ -1,4 +1,5 @@
 const Currency = require("../models/currencyModel");
+const Wallet = require("../models/walletModel");
 const AppError = require("../utils/appError");
 const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
@@ -55,10 +56,15 @@ exports.updateCurrency = catchAsync(async (req, res, next) => {
 
 exports.getACurrency = catchAsync(async (req, res, next) => {
   const currency = await Currency.findById(req.params.id);
+  const wallet = await Wallet.findOne({
+    username: req.query.username,
+    currencyId: req.params.id,
+  });
 
   res.status(200).json({
     status: "success",
     data: currency,
+    wallet: wallet,
   });
 });
 

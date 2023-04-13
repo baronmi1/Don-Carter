@@ -3,6 +3,7 @@ const { promisify } = require("util");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 const Signup = require("../models/signupModel");
+const Referral = require("../models/referralModel");
 const Company = require("../models/companyModel");
 const Related = require("../models/relatedModel");
 const Email = require("../models/emailModel");
@@ -40,6 +41,20 @@ const createSendToken = (user, statusCode, res) => {
 
 exports.signup = catchAsync(async (req, res, next) => {
   const data = req.body;
+
+  const users = await User.find({ username: req.body.username });
+  if (users.length > 0) {
+    return next(
+      new AppError(`Sorry, a user with this username already exist`, 500)
+    );
+  }
+
+  const emails = await User.find({ email: req.body.email });
+  if (emails.length > 0) {
+    return next(
+      new AppError(`Sorry, a user with this email already exist`, 500)
+    );
+  }
 
   if (data.autoRegister) {
     data.suspension = false;
@@ -98,10 +113,12 @@ exports.signup = catchAsync(async (req, res, next) => {
     }
 
     const user = await User.create(data);
-    await Related.create(data);
+    // await Related.create(data);
 
     if (signup.email) {
-      const emailResult = await Email.find({ name: "confirm-registration" });
+      const emailResult = await Email.find({
+        template: "confirm-registration",
+      });
       const email = emailResult[0];
       const companyResult = await Company.find();
       const company = companyResult[0];
@@ -116,6 +133,8 @@ exports.signup = catchAsync(async (req, res, next) => {
         const resetURL = `${domainName}/confirm-registration?token=${user._id}`;
         const banner = `${domainName}/uploads/${email.banner}`;
         new SendEmail(
+          company.companyName,
+          company.companyDomain,
           from,
           user,
           email.template,
@@ -347,55 +366,62 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
 
   const oldUser = await User.findById(token);
 
-  //2) If token has not expired, and there is a user, set the new password
   if (!oldUser) {
     return next(
       new AppError("User does not exist, please signup to continue.", 400)
     );
   }
 
-  const getAccountNumber = () => {
-    let min = 10000000;
-    let max = 99999999;
+  if (oldUser.suspension == false) {
+    return next(
+      new AppError(
+        "You have been activated already, please login to continue.",
+        400
+      )
+    );
+  }
 
-    let random_number = Math.floor(Math.random() * (max - min + 1)) + min; // generates an 8-digit number
-    return "00" + random_number.toString(); // adds two leading zeros
-  };
+  const user = await User.findByIdAndUpdate(oldUser._id, {
+    suspension: false,
+    status: "User",
+  });
 
-  const user = await User.findByIdAndUpdate(oldUser._id, { suspension: false });
-  const email = await Email.find({ name: "registration-successful" });
+  await Referral.create({
+    username: user.referredBy,
+    referralUsername: user.username,
+    regDate: user.regDate,
+  });
 
-  const accountDetails = {
-    fullName: `${user.firstName} ${user.middleName} ${user.lastName}`,
-    username: user.username,
-    currency: user.currency,
-    accountNumber: getAccountNumber(),
-    balance: 0,
-    accountType: "Savings",
-  };
+  const emailResult = await Email.find({
+    template: "registration-successful",
+  });
+  const email = emailResult[0];
+  const companyResult = await Company.find();
+  const company = companyResult[0];
 
-  const content = email[0]?.content.replace(
-    "{{full-name}}",
-    `${user.firstName} ${user.lastName}`
-  );
-  const domainName = "https://asfinanceltd.com";
-  const resetURL = "";
-  const from = `support@asfinanceltd.com`;
+  const content = email.content
+    .replace("{{company-name}}", company.companyName)
+    .replace("{{fullName}}", `${user.fullName}`);
+  const from = company.systemEmail;
+  const domainName = company.companyDomain;
 
   try {
-    const banner = `${domainName}/uploads/${email[0]?.banner}`;
+    const resetURL = `${domainName}/confirm-registration?token=${user._id}`;
+    const banner = `${domainName}/uploads/${email.banner}`;
     new SendEmail(
+      company.companyName,
+      company.companyDomain,
       from,
       user,
-      email[0]?.name,
-      email[0]?.title,
+      email.template,
+      email.title,
       banner,
       content,
-      email[0]?.headerColor,
-      email[0]?.footerColor,
-      email[0]?.mainColor,
-      email[0]?.greeting,
-      email[0]?.warning,
+      email.headerColor,
+      email.footerColor,
+      email.mainColor,
+      email.greeting,
+      email.warning,
       resetURL
     ).sendEmail();
   } catch (err) {
@@ -406,6 +432,5 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
       )
     );
   }
-
   createSendToken(user, 200, res);
 });

@@ -6,40 +6,14 @@ const bcrypt = require("bcryptjs");
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
-    require: [true, "Please fill in your username"],
-    minlength: [2, "Username must be greater than 3 characters"],
-    unique: [true, "A user with this username already exist"],
     trim: true,
   },
 
-  firstName: {
+  fullName: {
     type: String,
-    require: [true, "Please fill in your first name"],
-    minlength: [2, "Username must be greater than 5 characters"],
     trim: true,
   },
 
-  middleName: {
-    type: String,
-    require: [true, "Please fill in your middle name"],
-    minlength: [2, "Username must be greater than 5 characters"],
-    trim: true,
-  },
-
-  lastName: {
-    type: String,
-    require: [true, "Please fill in your last name"],
-    minlength: [2, "Username must be greater than 5 characters"],
-    trim: true,
-  },
-
-  phoneNumber1: {
-    type: String,
-    required: [true, "Please fill in your phone number"],
-    unique: [true, "A user with this phone number already exist"],
-    minlength: [10, "Phone number must be at least 10 digits"],
-    trim: true,
-  },
   email: {
     type: String,
     required: [true, "Please fill in your email"],
@@ -48,6 +22,7 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     validate: [validator.isEmail, "Please provide a valid email"],
   },
+
   autoRegister: {
     type: Boolean,
     default: false,
@@ -76,14 +51,16 @@ const userSchema = new mongoose.Schema({
       message: "Sorry the passwords do not match",
     },
   },
-
+  referredBy: {
+    type: String,
+    default: "",
+  },
   profilePicture: String,
   identity: String,
   idPicture: String,
   dob: Number,
   pin: Number,
   regDate: Number,
-  referrals: Array,
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,

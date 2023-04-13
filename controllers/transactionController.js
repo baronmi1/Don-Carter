@@ -1,6 +1,7 @@
 const Transaction = require("../models/transactionModel");
 const Active = require("../models/activeModel");
 const Wallet = require("../models/walletModel");
+const Plan = require("../models/planModel");
 const Company = require("../models/companyModel");
 const AppError = require("../utils/appError");
 const User = require("../models/userModel");
@@ -12,12 +13,36 @@ const catchAsync = require("../utils/catchAsync");
 
 exports.createTransaction = catchAsync(async (req, res, next) => {
   const data = req.body;
-  if (data.fromBalance == "true") {
-    data.reinvest = true;
-  }
-  const result = await Transaction.create(data);
+  if (data.autoTransact) {
+    const plan = await Plan.findOne({ planName: data.planName });
+    data.planCycle = plan.planCycle;
+    data.planDuration = plan.planDuration;
 
-  if (!data.autoTransact) {
+    const wallet = await Wallet.findOne({
+      name: data.walletName,
+      username: data.username,
+    });
+    data.walletId = wallet.walletId;
+    data.symbol = wallet.symbol;
+
+    await Transaction.create(data);
+
+    next();
+  } else {
+    if (data.fromBalance == "true") {
+      data.reinvest = true;
+    }
+    const result = await Transaction.create(data);
+
+    if (data.transactionType == "withdrawal") {
+      await Wallet.findByIdAndUpdate(data.walletId, {
+        $inc: { pendingWithdrawal: data.amount },
+      });
+    } else {
+      await Wallet.findByIdAndUpdate(data.walletId, {
+        $inc: { pendingDeposit: data.amount },
+      });
+    }
     sendTransactionEmail(data.user, data.transactionType, data.amount, next);
 
     // notificationController.createNotification(
@@ -26,12 +51,26 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
     //   data.date,
     //   data.dateCreated
     // );
-  }
 
-  res.status(200).json({
-    status: "success",
-    data: result,
+    next();
+  }
+});
+
+exports.updateTransaction = catchAsync(async (req, res, next) => {
+  const data = req.body;
+  const plan = await Plan.findOne({ planName: data.planName });
+  data.planCycle = plan.planCycle;
+  data.planDuration = plan.planDuration;
+  const wallet = await Wallet.findOne({
+    name: data.walletName,
+    username: data.username,
   });
+  data.walletId = wallet.walletId;
+  data.symbol = wallet.symbol;
+
+  await Transaction.findByIdAndUpdate(req.params.id, data);
+
+  next();
 });
 
 exports.getTransactions = catchAsync(async (req, res, next) => {
@@ -44,6 +83,23 @@ exports.getTransactions = catchAsync(async (req, res, next) => {
 
   const features = result.paginate();
 
+  const transactions = await features.query.clone();
+
+  res.status(200).json({
+    status: "success",
+    data: transactions,
+    resultLength: resultLen.length,
+  });
+});
+
+exports.getActiveDeposits = catchAsync(async (req, res, next) => {
+  const result = new APIFeatures(Active.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields();
+
+  const resultLen = await result.query;
+  const features = result.paginate();
   const transactions = await features.query.clone();
 
   res.status(200).json({
@@ -69,18 +125,37 @@ exports.getTransactionVolume = catchAsync(async (req, res, next) => {
   });
 });
 
-const deleteActiveDeposit = async (id, time) => {
-  const activeResult = await Active.findById(id);
-  await Wallet.findOneAndUpdate(
-    { currencyId: activeResult.walletId },
+exports.getDepositList = catchAsync(async (req, res, next) => {
+  const transactionVolume = await Transaction.aggregate([
     {
-      $inc: {
-        balance:
-          activeResult.earning * 1 +
-          Number((activeResult.amount * activeResult.percent * time) / 100),
+      $match: {
+        username: req.query.username,
       },
-    }
-  );
+    },
+    {
+      $group: {
+        _id: { transactionType: "$transactionType", planName: "$planName" },
+        amount: { $first: "$amount" },
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    status: "success",
+    data: transactionVolume,
+  });
+});
+
+const deleteActiveDeposit = async (id, time, next) => {
+  const activeResult = await Active.findById(id);
+  await Wallet.findByIdAndUpdate(activeResult.walletId, {
+    $inc: {
+      balance:
+        activeResult.earning * 1 +
+        Number((activeResult.amount * activeResult.percent * time) / 100),
+    },
+  });
   await User.findOneAndUpdate(
     { username: activeResult.username },
     {
@@ -92,13 +167,22 @@ const deleteActiveDeposit = async (id, time) => {
     }
   );
   await Active.findByIdAndDelete(activeResult._id);
+
+  const user = await User.findOne({ username: activeResult.username });
+  sendTransactionEmail(
+    user,
+    `investment-completion`,
+    activeResult.amount,
+    next
+  );
 };
 
 const startActiveDeposit = async (
   activeDeposit,
   earning,
   duration,
-  interval
+  interval,
+  next
 ) => {
   let elapsedTime = 0;
 
@@ -112,34 +196,30 @@ const startActiveDeposit = async (
     console.log(`the elapsed time is ${elapsedTime}`);
 
     if (elapsedTime >= duration) {
-      deleteActiveDeposit(activeDeposit._id, 0);
+      deleteActiveDeposit(activeDeposit._id, 0, next);
       clearInterval(intervalId);
     }
   }, interval);
 };
 
-exports.checkActive = async () => {
+exports.checkActive = async (next) => {
   const deposits = await Active.find();
   deposits.forEach((el) => {
     if (el.time * 1 + el.planDuration * 1 < new Date().getTime()) {
       const time = Math.floor(el.daysRemaining / el.planCycle);
-      deleteActiveDeposit(el._id, time);
+      deleteActiveDeposit(el._id, time, next);
     }
   });
 };
 
-exports.approveTransaction = catchAsync(async (req, res, next) => {
+exports.approveDeposit = catchAsync(async (req, res, next) => {
   req.body.status = true;
-  const transaction = await Transaction.findByIdAndUpdate(
-    req.params.id,
-    req.body
-  );
+  // await Transaction.findByIdAndUpdate(req.params.id, req.body);
 
   if (!req.body.reinvest) {
-    await Wallet.findOneAndUpdate(
-      { username: req.body.username, currencyId: req.body.walletId },
-      { $inc: { balance: req.body.amount } }
-    );
+    await Wallet.findByIdAndUpdate(req.body.walletId, {
+      $inc: { balance: req.body.amount },
+    });
     await User.findOneAndUpdate(
       { username: req.body.username },
       { $inc: { totalBalance: req.body.amount } }
@@ -158,81 +238,43 @@ exports.approveTransaction = catchAsync(async (req, res, next) => {
     activeDeposit,
     earning,
     req.body.planDuration * 1,
-    req.body.planCycle * 1
+    req.body.planCycle * 1,
+    next
   );
 
-  // const user = await User.findOne({ username: form.account.username });
-  // let oldAmount = result.balance;
+  const user = await User.findOne({ username: req.body.username });
 
-  // if (form.transactionType == "deposit") {
-  //   amount = oldAmount * 1 + form.amount * 1;
-  // }
+  sendTransactionEmail(
+    user,
+    `${req.body.transactionType}-approval`,
+    req.body.amount,
+    next
+  );
 
-  // if (
-  //   form.transactionType == "withdrawal" ||
-  //   form.transactionType == "internal"
-  // ) {
-  //   amount = oldAmount * 1 - form.amount * 1;
-  // }
+  next();
+});
 
-  // form.status = !form.status;
+exports.approveWithdrawal = catchAsync(async (req, res, next) => {
+  req.body.status = true;
+  await Transaction.findByIdAndUpdate(req.params.id, req.body);
 
-  // await Transaction.findByIdAndUpdate(req.params.id, form, {
-  //   new: true,
-  //   runValidators: true,
-  //   useFindAndModify: false,
-  // });
-  // await User.findByIdAndUpdate(
-  //   user._id,
-  //   { totalBalance: amount },
-  //   {
-  //     new: true,
-  //     runValidators: true,
-  //     useFindAndModify: false,
-  //   }
-  // );
+  await Wallet.findByIdAndUpdate(req.body.walletId, {
+    $inc: { balance: -req.body.amount * 1 },
+  });
 
-  // const email = await Email.findOne({
-  //   name: `${form.transactionType}-approval`,
-  // });
+  await User.findOneAndUpdate(
+    { username: req.body.username },
+    { $inc: { totalBalance: -req.body.amount * 1 } }
+  );
 
-  // notificationController.createNotification(
-  //   user.username,
-  //   `${form.transactionType}-approval`,
-  //   form.date,
-  //   form.dateCreated,
-  //   ""
-  // );
+  const user = await User.findOne({ username: req.body.username });
 
-  // sendTransactionEmail(user, email.name, form.amount, "", account);
-
-  // if (form.transactionType == "internal-transfer") {
-  //   receiver = await User.findOne({ username: form.receiverUsername });
-  //   let receiverAccount = await Account.findOne({
-  //     username: form.receiverUsername,
-  //   });
-  //   let receiverBalance = receiverAccount.balance;
-
-  //   let newBalance = receiverBalance * 1 + form.amount;
-
-  //   await Account.findByIdAndUpdate(receiverAccount._id, {
-  //     balance: newBalance,
-  //   });
-
-  //   const email = await Email.findOne({
-  //     name: `credit-approval`,
-  //   });
-
-  //   notificationController.createNotification(
-  //     receiver.username,
-  //     `credit-approval`,
-  //     form.date,
-  //     form.dateCreated,
-  //     form.username
-  //   );
-
-  //   sendTransactionEmail(receiver, email.name, form.amount, "", account);
-  // }
+  sendTransactionEmail(
+    user,
+    `${req.body.transactionType}-approval`,
+    req.body.amount,
+    next
+  );
 
   next();
 });
@@ -258,6 +300,10 @@ const sendTransactionEmail = async (user, type, amount, next) => {
   const content = email.content
     .replace("{{amount}}", amount)
     .replace("{{company-name}}", company.companyName);
+  const warning = email.warning.replace(
+    "{{company-name}}",
+    company.companyName
+  );
 
   try {
     const banner = `${domainName}/uploads/${email.banner}`;
@@ -274,7 +320,7 @@ const sendTransactionEmail = async (user, type, amount, next) => {
       email.footerColor,
       email.mainColor,
       email.greeting,
-      email.warning,
+      warning,
       resetURL
     ).sendEmail();
   } catch (err) {

@@ -15,6 +15,7 @@ const currencyRouter = require("./routes/currencyRoutes");
 const emailRouter = require("./routes/emailRoutes");
 const faqRouter = require("./routes/faqRoutes");
 const planRouter = require("./routes/planRoutes");
+const referralRouter = require("./routes/referralRoutes");
 const reviewRouter = require("./routes/reviewRoutes");
 const signupRouter = require("./routes/signupRoutes");
 const transactionRouter = require("./routes/transactionRoutes");
@@ -27,22 +28,22 @@ const transaction = require("./controllers/transactionController");
 const userController = require("./controllers/userController");
 dotenv.config({ path: "./config.env" });
 
-// const chokidar = require("chokidar");
+const chokidar = require("chokidar");
 
-// const watcher = chokidar.watch(
-//   "/app/controllers/transactionController.js",
-//   "/app/utils/email.js",
-//   "/app/app.js",
-//   {
-//     ignored: /[\/\\]\./, // ignore dotfiles
-//     persistent: true, // keep the process running
-//   }
-// );
+const watcher = chokidar.watch(
+  "/app/controllers/transactionController.js",
+  "/app/utils/email.js",
+  "/app/app.js",
+  {
+    ignored: /[\/\\]\./, // ignore dotfiles
+    persistent: true, // keep the process running
+  }
+);
 
-// watcher
-//   .on("add", (path) => console.log(`File ${path} has been added`))
-//   .on("change", (path) => console.log(`File ${path} has been changed`))
-//   .on("unlink", (path) => console.log(`File ${path} has been removed`));
+watcher
+  .on("add", (path) => console.log(`File ${path} has been added`))
+  .on("change", (path) => console.log(`File ${path} has been changed`))
+  .on("unlink", (path) => console.log(`File ${path} has been removed`));
 
 const app = express();
 const server = require("http").createServer(app);
@@ -68,8 +69,8 @@ app.use(bodyParser.json());
 
 app.use(morgan("dev")); // configire morgan
 
-const checkActiveDeposits = () => {
-  transaction.checkActive();
+const checkActiveDeposits = (req, res, next) => {
+  transaction.checkActive(next);
 };
 
 checkActiveDeposits();
@@ -82,6 +83,7 @@ app.use("/api/currency", currencyRouter);
 app.use("/api/emails", emailRouter);
 app.use("/api/faq", faqRouter);
 app.use("/api/plans", planRouter);
+app.use("/api/referrals", referralRouter);
 app.use("/api/review", reviewRouter);
 app.use("/api/signup", signupRouter);
 app.use("/api/terms", termsRouter);
