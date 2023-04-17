@@ -12,6 +12,7 @@ const transactionSchema = new mongoose.Schema({
   planCycle: Number,
   percent: Number,
   walletName: String,
+  referredBy: String,
   walletId: String,
   time: Number,
   reinvest: Boolean,

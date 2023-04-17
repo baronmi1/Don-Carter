@@ -2,6 +2,7 @@ const Transaction = require("../models/transactionModel");
 const Active = require("../models/activeModel");
 const Wallet = require("../models/walletModel");
 const Plan = require("../models/planModel");
+const Referral = require("../models/referralModel");
 const Company = require("../models/companyModel");
 const AppError = require("../utils/appError");
 const User = require("../models/userModel");
@@ -17,6 +18,7 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
     const plan = await Plan.findOne({ planName: data.planName });
     data.planCycle = plan.planCycle;
     data.planDuration = plan.planDuration;
+    data.percent = plan.planPercentage;
 
     const wallet = await Wallet.findOne({
       name: data.walletName,
@@ -36,7 +38,7 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
 
     if (data.transactionType == "withdrawal") {
       await Wallet.findByIdAndUpdate(data.walletId, {
-        $inc: { pendingWithdrawal: data.amount },
+        $inc: { pendingWithdrawal: data.amount * -1 },
       });
     } else {
       await Wallet.findByIdAndUpdate(data.walletId, {
@@ -166,15 +168,59 @@ const deleteActiveDeposit = async (id, time, next) => {
       },
     }
   );
-  await Active.findByIdAndDelete(activeResult._id);
 
+  const referral = await Referral.findOne({
+    referralUsername: activeResult.username,
+    regDate: { $gt: 0 },
+  });
+
+  if (referral) {
+    const percentResult = await Plan.findOne({
+      planName: activeResult.planName,
+    });
+    await Wallet.findOneAndUpdate(
+      { currencyId: activeResult.walletId, username: referral.username },
+      {
+        $inc: {
+          balance: Number(
+            (activeResult.amount * percentResult.referralCommission) / 100
+          ),
+        },
+      }
+    );
+    const user = await User.findOneAndUpdate(
+      { username: referral.username },
+      {
+        $inc: {
+          totalBalance: Number(
+            (activeResult.amount * percentResult.referralCommission) / 100
+          ),
+        },
+      }
+    );
+    const form = {
+      username: user.username,
+      referralUsername: activeResult.username,
+      amount: activeResult.amount,
+      currencyName: activeResult.walletName,
+      currencySymbol: activeResult.symbol,
+      commission: Number(
+        (activeResult.amount * percentResult.referralCommission) / 100
+      ).toFixed(2),
+      time: activeResult.time,
+      regDate: referral.regDate,
+    };
+    await Referral.create(form);
+  }
+
+  await Active.findByIdAndDelete(activeResult._id);
   const user = await User.findOne({ username: activeResult.username });
-  sendTransactionEmail(
-    user,
-    `investment-completion`,
-    activeResult.amount,
-    next
-  );
+  // sendTransactionEmail(
+  //   user,
+  //   `investment-completion`,
+  //   activeResult.amount,
+  //   next
+  // );
 };
 
 const startActiveDeposit = async (
@@ -208,13 +254,21 @@ exports.checkActive = async (next) => {
     if (el.time * 1 + el.planDuration * 1 < new Date().getTime()) {
       const time = Math.floor(el.daysRemaining / el.planCycle);
       deleteActiveDeposit(el._id, time, next);
+    } else {
+      startActiveDeposit(
+        el,
+        ((el.amount * el.percent) / 100).toFixed(2),
+        el.planDuration,
+        el.planCycle,
+        next
+      );
     }
   });
 };
 
 exports.approveDeposit = catchAsync(async (req, res, next) => {
   req.body.status = true;
-  // await Transaction.findByIdAndUpdate(req.params.id, req.body);
+  await Transaction.findByIdAndUpdate(req.params.id, req.body);
 
   if (!req.body.reinvest) {
     await Wallet.findByIdAndUpdate(req.body.walletId, {
@@ -225,11 +279,8 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
       { $inc: { totalBalance: req.body.amount } }
     );
   }
-  // req.body.daysRemaining = req.body.planDuration;
-  req.body.daysRemaining = 60000;
-  req.body.planDuration = 60000;
-  req.body.planCycle = 5000;
-  req.body.earning = 0;
+  req.body.planDuration = req.body.planDuration * 24 * 60 * 60 * 1000;
+  req.body.daysRemaining = req.body.planDuration;
   req.body.time = new Date().getTime();
   const activeDeposit = await Active.create(req.body);
   const earning = Number((req.body.amount * req.body.percent) / 100).toFixed(2);

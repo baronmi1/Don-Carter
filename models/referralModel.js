@@ -8,9 +8,6 @@ const referralSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
-  referralUsername: String,
-  currencySymbol: String,
-  currencyName: String,
   amount: {
     type: Number,
     default: 0,
@@ -27,6 +24,12 @@ const referralSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  referralUsername: {
+    type: String,
+    default: "",
+  },
+  currencySymbol: String,
+  currencyName: String,
 });
 
 const Referral = mongoose.model("Referral", referralSchema);

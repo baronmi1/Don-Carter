@@ -248,6 +248,10 @@ exports.updateCompany = catchAsync(async (req, res, next) => {
   allowedFields.companyName = req.body.companyName;
   allowedFields.companyDomain = req.body.companyDomain;
   allowedFields.systemEmail = req.body.systemEmail;
+  allowedFields.dayStarted = req.body.dayStarted;
+  allowedFields.totalMembers = req.body.totalMembers;
+  allowedFields.activeMembers = req.body.activeMembers;
+  allowedFields.onlineMembers = req.body.onlineMembers;
 
   const newCompany = await Company.findByIdAndUpdate(
     req.params.id,

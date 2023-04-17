@@ -10,7 +10,6 @@ const Email = require("../models/emailModel");
 const AppError = require("../utils/appError");
 const SendEmail = require("../utils/email");
 const catchAsync = require("../utils/catchAsync");
-const { findByIdAndUpdate } = require("../models/userModel");
 
 const signToken = (id) => {
   return jwt.sign({ id: id }, process.env.JWT_SECRETE, {
@@ -41,6 +40,7 @@ const createSendToken = (user, statusCode, res) => {
 
 exports.signup = catchAsync(async (req, res, next) => {
   const data = req.body;
+  data.status = "User";
 
   const users = await User.find({ username: req.body.username });
   if (users.length > 0) {
@@ -112,51 +112,68 @@ exports.signup = catchAsync(async (req, res, next) => {
       data.suspension = true;
     }
 
+    //----------CHECK FOR REFERRAL---------------
+    const referral = await User.findOne({ username: data.referredBy });
     const user = await User.create(data);
-    // await Related.create(data);
 
-    if (signup.email) {
-      const emailResult = await Email.find({
-        template: "confirm-registration",
+    if (referral != null || referral != undefined) {
+      const form = {
+        username: user.username,
+        regDate: data.regDate,
+      };
+      referral.referrals.push(form);
+      await User.findByIdAndUpdate(referral._id, {
+        referrals: referral.referrals,
+        hasReferred: true,
       });
-      const email = emailResult[0];
-      const companyResult = await Company.find();
-      const company = companyResult[0];
-
-      const content = email.content
-        .replace("{{company-name}}", company.companyName)
-        .replace("{{fullName}}", `${user.firstName} ${user.lastName}`);
-      const from = company.systemEmail;
-      const domainName = company.companyDomain;
-
-      try {
-        const resetURL = `${domainName}/confirm-registration?token=${user._id}`;
-        const banner = `${domainName}/uploads/${email.banner}`;
-        new SendEmail(
-          company.companyName,
-          company.companyDomain,
-          from,
-          user,
-          email.template,
-          email.title,
-          banner,
-          content,
-          email.headerColor,
-          email.footerColor,
-          email.mainColor,
-          email.greeting,
-          email.warning,
-          resetURL
-        ).sendEmail();
-      } catch (err) {
-        return next(
-          new AppError(
-            `There was an error sending the email. Try again later!, ${err}`,
-            500
-          )
-        );
-      }
+      await Referral.create({
+        username: referral.username,
+        referralUsername: user.username,
+        regDate: data.regDate,
+      });
     }
+    // if (signup.email) {
+    //   const emailResult = await Email.find({
+    //     template: "confirm-registration",
+    //   });
+    //   const email = emailResult[0];
+    //   const companyResult = await Company.find();
+    //   const company = companyResult[0];
+
+    //   const content = email.content
+    //     .replace("{{company-name}}", company.companyName)
+    //     .replace("{{fullName}}", `${user.firstName} ${user.lastName}`);
+    //   const from = company.systemEmail;
+    //   const domainName = company.companyDomain;
+
+    //   try {
+    //     const resetURL = `${domainName}/confirm-registration?token=${user._id}`;
+    //     const banner = `${domainName}/uploads/${email.banner}`;
+    //     new SendEmail(
+    //       company.companyName,
+    //       company.companyDomain,
+    //       from,
+    //       user,
+    //       email.template,
+    //       email.title,
+    //       banner,
+    //       content,
+    //       email.headerColor,
+    //       email.footerColor,
+    //       email.mainColor,
+    //       email.greeting,
+    //       email.warning,
+    //       resetURL
+    //     ).sendEmail();
+    //   } catch (err) {
+    //     return next(
+    //       new AppError(
+    //         `There was an error sending the email. Try again later!, ${err}`,
+    //         500
+    //       )
+    //     );
+    //   }
+    // }
 
     createSendToken(user, 201, res);
   }
@@ -219,27 +236,36 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
 
-  const email = await Email.find({ name: "reset-password" });
-  const resetURL = `https://asfinanceltd.com/confirm-password/?token=${resetToken}`;
-  const domainName = "https://asfinanceltd.com";
-  const from = "support@asfinanceltd.com";
+  const company = await Company.findOne();
+  const email = await Email.findOne({ template: "reset-password" });
+  if (!email) {
+    return next(
+      new AppError("Sorry, no email set for this operation yet!", 404)
+    );
+  }
 
-  const content = email[0]?.content.replace("{{username}}", `${user.username}`);
+  const domainName = company.companyDomain;
+  const resetURL = `${domainName}/reset-password/?token=${resetToken}`;
+  const from = company.systemEmail;
+  const content = email.content.replace("{{username}}", `${user.username}`);
 
   try {
-    const banner = `${domainName}/uploads/${email[0]?.banner}`;
+    // const banner = `${domainName}/uploads/${email.banner}`;
+    const banner = `http://5000/uploads/${email.banner}`;
     new SendEmail(
+      company.companyName,
+      company.companyDomain,
       from,
       user,
-      email[0]?.name,
-      email[0]?.title,
+      email.template,
+      email.title,
       banner,
       content,
-      email[0]?.headerColor,
-      email[0]?.footerColor,
-      email[0]?.mainColor,
-      email[0]?.greeting,
-      email[0]?.warning,
+      email.headerColor,
+      email.footerColor,
+      email.mainColor,
+      email.greeting,
+      email.warning,
       resetURL
     ).sendEmail();
   } catch (err) {

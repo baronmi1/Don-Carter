@@ -11,6 +11,7 @@ const activeSchema = new mongoose.Schema({
   percent: Number,
   planCycle: Number,
   daysRemaining: Number,
+  referredBy: String,
   walletName: String,
   walletId: String,
   time: Number,
