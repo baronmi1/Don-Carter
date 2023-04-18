@@ -59,6 +59,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  status: {
+    type: String,
+    default: "User",
+  },
   profilePicture: String,
   identity: String,
   idPicture: String,

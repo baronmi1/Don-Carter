@@ -7,6 +7,22 @@ const companySchema = new mongoose.Schema({
     trim: true,
     lowercase: true,
   },
+  dayStarted: {
+    type: Number,
+    default: 0,
+  },
+  onlineMembers: {
+    type: Number,
+    default: 0,
+  },
+  totalMembers: {
+    type: Number,
+    default: 0,
+  },
+  activeMembers: {
+    type: Number,
+    default: 0,
+  },
   socials: Array,
   coloredSocials: Array,
   media: Array,
@@ -14,10 +30,6 @@ const companySchema = new mongoose.Schema({
   companyName: String,
   bannerCategories: Array,
   companyDomain: String,
-  dayStarted: Number,
-  onlineMembers: Number,
-  totalMembers: Number,
-  activeMembers: Number,
 });
 
 const Company = mongoose.model("Company", companySchema);
