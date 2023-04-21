@@ -2063,7 +2063,7 @@ textarea.w-select {
   margin-top: 0px;
   margin-bottom: 60px;
   background-color: transparent;
-  background-image: url("https://uploads-ssl.webflow.com/634f65db6f66af39a9853ff1/6382475afb4a8c320893dd56_kimage.jpg");
+  background-image: url("../images/building-image.jpg");
   background-position: 50% 50%;
   background-size: cover;
   text-align: left;
@@ -3931,7 +3931,7 @@ textarea.w-select {
 .dropdown-list {
   position: relative;
   display: block;
-  padding-top: 20px;
+  padding-top: 0px;
   background-color: transparent;
 }
 
@@ -3958,7 +3958,6 @@ textarea.w-select {
 }
 
 .text-block-21 {
-  margin-bottom: 20px;
   font-family: Catamaran, sans-serif;
   color: #777;
   font-size: 1em;

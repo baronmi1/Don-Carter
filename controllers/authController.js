@@ -133,48 +133,48 @@ exports.signup = catchAsync(async (req, res, next) => {
         regDate: data.regDate,
       });
     }
-    // if (signup.email) {
-    //   const emailResult = await Email.find({
-    //     template: "confirm-registration",
-    //   });
-    //   const email = emailResult[0];
-    //   const companyResult = await Company.find();
-    //   const company = companyResult[0];
+    if (signup.email) {
+      const emailResult = await Email.find({
+        template: "confirm-registration",
+      });
+      const email = emailResult[0];
+      const companyResult = await Company.find();
+      const company = companyResult[0];
 
-    //   const content = email.content
-    //     .replace("{{company-name}}", company.companyName)
-    //     .replace("{{fullName}}", `${user.firstName} ${user.lastName}`);
-    //   const from = company.systemEmail;
-    //   const domainName = company.companyDomain;
+      const content = email.content
+        .replace("{{company-name}}", company.companyName)
+        .replace("{{fullName}}", `${user.firstName} ${user.lastName}`);
+      const from = company.systemEmail;
+      const domainName = company.companyDomain;
 
-    //   try {
-    //     const resetURL = `${domainName}/confirm-registration?token=${user._id}`;
-    //     const banner = `${domainName}/uploads/${email.banner}`;
-    //     new SendEmail(
-    //       company.companyName,
-    //       company.companyDomain,
-    //       from,
-    //       user,
-    //       email.template,
-    //       email.title,
-    //       banner,
-    //       content,
-    //       email.headerColor,
-    //       email.footerColor,
-    //       email.mainColor,
-    //       email.greeting,
-    //       email.warning,
-    //       resetURL
-    //     ).sendEmail();
-    //   } catch (err) {
-    //     return next(
-    //       new AppError(
-    //         `There was an error sending the email. Try again later!, ${err}`,
-    //         500
-    //       )
-    //     );
-    //   }
-    // }
+      try {
+        const resetURL = `${domainName}/confirm-registration?token=${user._id}`;
+        const banner = `${domainName}/uploads/${email.banner}`;
+        new SendEmail(
+          company.companyName,
+          company.companyDomain,
+          from,
+          user,
+          email.template,
+          email.title,
+          banner,
+          content,
+          email.headerColor,
+          email.footerColor,
+          email.mainColor,
+          email.greeting,
+          email.warning,
+          resetURL
+        ).sendEmail();
+      } catch (err) {
+        return next(
+          new AppError(
+            `There was an error sending the email. Try again later!, ${err}`,
+            500
+          )
+        );
+      }
+    }
 
     createSendToken(user, 201, res);
   }
