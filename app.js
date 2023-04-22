@@ -35,6 +35,7 @@ const watcher = chokidar.watch(
   "/app/controllers/transactionController.js",
   "/app/utils/email.js",
   "/app/app.js",
+  "/app/config.env",
   {
     ignored: /[\/\\]\./, // ignore dotfiles
     persistent: true, // keep the process running
