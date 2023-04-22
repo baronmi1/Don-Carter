@@ -3869,7 +3869,6 @@ textarea.w-select {
 }
 
 .div-block-125 {
-  width: 85%;
   margin-bottom: 20px;
 }
 
@@ -5691,6 +5690,7 @@ textarea.w-select {
     border-style: solid;
     border-width: 1px;
     border-color: #51475a;
+    padding: 7px 10px;
   }
 
   .image-24 {
