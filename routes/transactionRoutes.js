@@ -13,6 +13,7 @@ const router = express.Router();
 router.get("/notifications", notificationController.getNotifications);
 router.get("/get-volumes", transactionController.getTransactionVolume);
 router.get("/active-deposits", transactionController.getActiveDeposits);
+router.get("/earnings", transactionController.getEarnings);
 router.get("/deposit-list", transactionController.getDepositList);
 router.patch(
   "/approve-withdrawal/:id",

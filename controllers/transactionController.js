@@ -1,5 +1,6 @@
 const Transaction = require("../models/transactionModel");
 const Active = require("../models/activeModel");
+const Earning = require("../models/earningModel");
 const Wallet = require("../models/walletModel");
 const Plan = require("../models/planModel");
 const Referral = require("../models/referralModel");
@@ -151,6 +152,7 @@ exports.getDepositList = catchAsync(async (req, res, next) => {
 
 const deleteActiveDeposit = async (id, time, next) => {
   const activeResult = await Active.findById(id);
+
   await Wallet.findByIdAndUpdate(activeResult.walletId, {
     $inc: {
       balance:
@@ -169,58 +171,14 @@ const deleteActiveDeposit = async (id, time, next) => {
     }
   );
 
-  const referral = await Referral.findOne({
-    referralUsername: activeResult.username,
-    regDate: { $gt: 0 },
-  });
-
-  if (referral) {
-    const percentResult = await Plan.findOne({
-      planName: activeResult.planName,
-    });
-    await Wallet.findOneAndUpdate(
-      { currencyId: activeResult.walletId, username: referral.username },
-      {
-        $inc: {
-          balance: Number(
-            (activeResult.amount * percentResult.referralCommission) / 100
-          ),
-        },
-      }
-    );
-    const user = await User.findOneAndUpdate(
-      { username: referral.username },
-      {
-        $inc: {
-          totalBalance: Number(
-            (activeResult.amount * percentResult.referralCommission) / 100
-          ),
-        },
-      }
-    );
-    const form = {
-      username: user.username,
-      referralUsername: activeResult.username,
-      amount: activeResult.amount,
-      currencyName: activeResult.walletName,
-      currencySymbol: activeResult.symbol,
-      commission: Number(
-        (activeResult.amount * percentResult.referralCommission) / 100
-      ).toFixed(2),
-      time: activeResult.time,
-      regDate: referral.regDate,
-    };
-    await Referral.create(form);
-  }
-
   await Active.findByIdAndDelete(activeResult._id);
   const user = await User.findOne({ username: activeResult.username });
-  // sendTransactionEmail(
-  //   user,
-  //   `investment-completion`,
-  //   activeResult.amount,
-  //   next
-  // );
+  sendTransactionEmail(
+    user,
+    `investment-completion`,
+    activeResult.amount,
+    next
+  );
 };
 
 const startActiveDeposit = async (
@@ -235,13 +193,28 @@ const startActiveDeposit = async (
   const intervalId = setInterval(async () => {
     await Active.updateOne(
       { _id: activeDeposit._id },
-      { $inc: { earning: earning, daysRemaining: -interval * 1 } }
+      { $inc: { earning: earning * 1, daysRemaining: -interval * 1 } }
     );
+
+    const form = {
+      symbol: activeDeposit.symbol,
+      depositId: activeDeposit._id,
+      username: activeDeposit.username,
+      amount: activeDeposit.amount,
+      earning: earning,
+      referredBy: activeDeposit.referralUsername,
+      walletName: activeDeposit.walletName,
+      walletId: activeDeposit.walletId,
+      time: activeDeposit.time,
+    };
+
+    await Earning.create(form);
 
     elapsedTime += interval;
     console.log(`the elapsed time is ${elapsedTime}`);
 
     if (elapsedTime >= duration) {
+      console.log(`the time has elapsed completely`);
       deleteActiveDeposit(activeDeposit._id, 0, next);
       clearInterval(intervalId);
     }
@@ -258,7 +231,7 @@ exports.checkActive = async (next) => {
       startActiveDeposit(
         el,
         ((el.amount * el.percent) / 100).toFixed(2),
-        el.planDuration,
+        el.daysRemaining,
         el.planCycle,
         next
       );
@@ -279,6 +252,7 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
       { $inc: { totalBalance: req.body.amount } }
     );
   }
+
   req.body.planDuration = req.body.planDuration * 24 * 60 * 60 * 1000;
   req.body.daysRemaining = req.body.planDuration;
   req.body.time = new Date().getTime();
@@ -292,6 +266,50 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
     req.body.planCycle * 1,
     next
   );
+
+  const referral = await Referral.findOne({
+    referralUsername: activeDeposit.username,
+    regDate: { $gt: 0 },
+  });
+
+  if (referral) {
+    const percentResult = await Plan.findOne({
+      planName: activeDeposit.planName,
+    });
+    await Wallet.findOneAndUpdate(
+      { currencyId: activeDeposit.walletId, username: referral.username },
+      {
+        $inc: {
+          balance: Number(
+            (activeDeposit.amount * percentResult.referralCommission) / 100
+          ),
+        },
+      }
+    );
+    const user = await User.findOneAndUpdate(
+      { username: referral.username },
+      {
+        $inc: {
+          totalBalance: Number(
+            (activeDeposit.amount * percentResult.referralCommission) / 100
+          ),
+        },
+      }
+    );
+    const form = {
+      username: user.username,
+      referralUsername: activeDeposit.username,
+      amount: activeDeposit.amount,
+      currencyName: activeDeposit.walletName,
+      currencySymbol: activeDeposit.symbol,
+      commission: Number(
+        (activeDeposit.amount * percentResult.referralCommission) / 100
+      ).toFixed(2),
+      time: activeDeposit.time,
+      regDate: referral.regDate,
+    };
+    await Referral.create(form);
+  }
 
   const user = await User.findOne({ username: req.body.username });
 
@@ -394,3 +412,22 @@ exports.sendTransactionNotification = (io, socket) => {
     io.emit("sentNotification", users);
   });
 };
+
+exports.getEarnings = catchAsync(async (req, res, next) => {
+  const result = new APIFeatures(Earning.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields();
+
+  const resultLen = await result.query;
+
+  const features = result.paginate();
+
+  const earnings = await features.query.clone();
+
+  res.status(200).json({
+    status: "success",
+    data: earnings,
+    resultLength: resultLen.length,
+  });
+});

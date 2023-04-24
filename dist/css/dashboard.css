@@ -3381,7 +3381,7 @@ textarea.w-select {
 }
 
 .heading-13 {
-  width: auto;
+  width: 33.33%;
   margin: 0px auto;
   padding-right: 0px;
   padding-left: 0px;
@@ -3390,7 +3390,7 @@ textarea.w-select {
   font-size: 16px;
   line-height: 29px;
   font-weight: 400;
-  text-align: right;
+  text-align: left;
 }
 
 .div-block-49 {
@@ -3408,6 +3408,7 @@ textarea.w-select {
 }
 
 .div-block-50 {
+  min-width: 400px;
   margin-top: 10px;
   margin-bottom: 10px;
   border-style: solid;
