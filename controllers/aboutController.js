@@ -32,6 +32,8 @@ exports.updateAbout = catchAsync(async (req, res, next) => {
   let filesToDelete = [];
   let allowedFields = req.body;
 
+  console.log(req.body);
+
   if (req.file) {
     allowedFields.certificate = req.file.filename;
     const oldAbout = await About.findById(req.params.id);

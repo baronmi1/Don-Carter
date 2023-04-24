@@ -24,8 +24,6 @@ const termsRouter = require("./routes/termsRoutes");
 const userRouter = require("./routes/userRoutes");
 const walletRouter = require("./routes/walletRoutes");
 
-const transaction = require("./controllers/transactionController");
-
 const userController = require("./controllers/userController");
 dotenv.config({ path: "./config.env" });
 
@@ -70,12 +68,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use(morgan("dev")); // configire morgan
-
-const checkActiveDeposits = (req, res, next) => {
-  transaction.checkActive(next);
-};
-
-checkActiveDeposits();
 
 app.use("/api/about", aboutRouter);
 app.use("/api/banner", bannerRouter);

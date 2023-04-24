@@ -1,12 +1,12 @@
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const server = require("./app");
-
+const transaction = require("./controllers/transactionController");
 dotenv.config({ path: "./config.env" });
 
-// const DB = process.env.LOCAL_DB;
+const DB = process.env.LOCAL_DB;
 
-const DB = process.env.DATABASE.replace("<PASSWORD>", process.env.PASSWORD);
+// const DB = process.env.DATABASE.replace("<PASSWORD>", process.env.PASSWORD);
 
 mongoose
   .connect(DB, {
@@ -15,6 +15,13 @@ mongoose
   })
   .then((con) => {
     console.log("DB connected successfully");
+  })
+  .then(() => {
+    const checkActiveDeposits = (req, res, next) => {
+      transaction.checkActive(next);
+    };
+
+    checkActiveDeposits();
   })
   .catch((err) => {
     console.log({ database_error: err });

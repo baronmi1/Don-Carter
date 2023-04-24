@@ -224,7 +224,7 @@ const startActiveDeposit = async (
 exports.checkActive = async (next) => {
   const deposits = await Active.find();
   deposits.forEach((el) => {
-    if (el.time * 1 + el.planDuration * 1 < new Date().getTime()) {
+    if (el.serverTime * 1 + el.planDuration * 1 < new Date().getTime()) {
       const time = Math.floor(el.daysRemaining / el.planCycle);
       deleteActiveDeposit(el._id, time, next);
     } else {
@@ -255,7 +255,7 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
 
   req.body.planDuration = req.body.planDuration * 24 * 60 * 60 * 1000;
   req.body.daysRemaining = req.body.planDuration;
-  req.body.time = new Date().getTime();
+  req.body.serverTime = new Date().getTime();
   const activeDeposit = await Active.create(req.body);
   const earning = Number((req.body.amount * req.body.percent) / 100).toFixed(2);
 
