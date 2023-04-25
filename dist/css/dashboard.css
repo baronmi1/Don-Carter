@@ -3473,7 +3473,7 @@ textarea.w-select {
   text-align: center;
 }
 
-.image-13 {
+.image-13.dot {
   width: 10px;
   max-width: none;
 }
@@ -8204,10 +8204,6 @@ textarea.w-select {
     -webkit-align-items: center;
     -ms-flex-align: center;
     align-items: center;
-  }
-
-  .div-block-46.flex.selected {
-    background-color: #ee4284;
   }
 
   .div-block-46.starter {
