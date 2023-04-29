@@ -1,3 +1,6 @@
+/*! http://mths.be/codepointat v0.1.0 by @mathias */
+
+
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -38,6 +41,3 @@
  * (c) 2021 Evan You
  * @license MIT
  */
-
-
-/*! http://mths.be/codepointat v0.1.0 by @mathias */
