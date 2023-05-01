@@ -95,22 +95,25 @@ exports.updateWallet = catchAsync(async (req, res, next) => {
   });
 });
 
-// exports.deleteWallet = catchAsync(async (req, res, next) => {
-//   const Wallet = await Wallet.findByIdAndDelete(req.params.id);
+exports.deleteWallet = catchAsync(async (req, res, next) => {
+  const wallet = await Wallet.findByIdAndDelete(req.params.id);
 
-//   if (!Wallet) {
-//     return next(new AppError("No Wallet found with that ID", 404));
-//   }
-//   res.status(200).json({
-//     status: "success",
-//   });
-// });
+  if (!wallet) {
+    return next(new AppError("No Wallet found with that ID", 404));
+  }
+  res.status(200).json({
+    status: "success",
+  });
+});
 
-// exports.getAnWallet = catchAsync(async (req, res, next) => {
-//   const Wallet = await Wallet.findOne({ username: req.params.id });
+exports.getAWallet = catchAsync(async (req, res, next) => {
+  const wallets = await Wallet.findOne({ username: req.params.id });
 
-//   res.status(200).json({
-//     status: "success",
-//     data: Wallet,
-//   });
-// });
+  if (wallets.length == 0) {
+  }
+
+  res.status(200).json({
+    status: "success",
+    data: wallets,
+  });
+});
