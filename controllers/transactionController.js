@@ -209,13 +209,23 @@ const startActiveDeposit = async (
       walletId: activeDeposit.walletId,
       time: activeDeposit.time,
     };
-    await Earning.create(form);
-    elapsedTime += interval;
-    console.log(`the elapsed time is ${elapsedTime}`);
-    if (elapsedTime >= duration) {
+    const newActiveDeposit = await Active.findById(activeDeposit._id);
+    const timeRemaining = newActiveDeposit.daysRemaining;
+    if (timeRemaining <= 0) {
       console.log(`the time has elapsed completely`);
       deleteActiveDeposit(activeDeposit._id, 0, next);
       clearInterval(intervalId);
+    } else {
+      await Earning.create(form);
+      elapsedTime += interval;
+
+      console.log(
+        `The time remaining is ${Math.floor(
+          timeRemaining / (60 * 60 * 1000)
+        )} hours, ${Math.floor(
+          timeRemaining / (60 * 1000)
+        )} minutes, ${Math.floor(timeRemaining / 1000)} seconds`
+      );
     }
   }, interval);
 };
@@ -252,13 +262,13 @@ const timeFractionDeposit = async (activeDeposit, earning, interval, next) => {
 exports.checkActive = async (next) => {
   const deposits = await Active.find();
   deposits.forEach((el) => {
-    const remaining = el.serverTime * 1 + el.planDuration * 1;
+    const duration = el.serverTime * 1 + el.planDuration * 1;
 
-    if (remaining < new Date().getTime()) {
-      const time = Math.floor(el.daysRemaining / el.planCycle);
+    if (duration < new Date().getTime()) {
+      const time = Math.floor(el.daysduration / el.planCycle);
       deleteActiveDeposit(el._id, time, next);
-    } else if ((remaining - new Date().getTime()) % el.planCycle > 0) {
-      const planCycle = (remaining - new Date().getTime()) % el.planCycle;
+    } else if ((duration - new Date().getTime()) % el.planCycle > 0) {
+      const planCycle = (duration - new Date().getTime()) % el.planCycle;
       timeFractionDeposit(
         el,
         ((el.amount * el.percent) / 100).toFixed(2),
