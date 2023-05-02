@@ -299,8 +299,7 @@ exports.checkActive = async () => {
         el,
         ((el.amount * el.percent) / 100).toFixed(2),
         el.daysRemaining,
-        el.planCycle,
-        next
+        el.planCycle
       );
     }
     // else if ((duration - new Date().getTime()) % el.planCycle > 0) {
