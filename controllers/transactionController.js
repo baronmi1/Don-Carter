@@ -202,9 +202,13 @@ const startActiveDeposit = async (
   );
 
   const intervalId = setInterval(async () => {
+    const newTime = (activeDeposit.time = new Date().getTime());
     await Active.updateOne(
       { _id: activeDeposit._id },
-      { $inc: { earning: earning * 1, daysRemaining: -interval * 1 } }
+      {
+        $inc: { earning: earning * 1, daysRemaining: -interval * 1 },
+        time: newTime,
+      }
     );
     const form = {
       symbol: activeDeposit.symbol,
@@ -316,7 +320,7 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
     });
   }
   req.body.planCycle = 60 * 1000;
-  req.body.planDuration = 4 * 60 * 1000;
+  req.body.planDuration = 7 * 60 * 1000;
   req.body.daysRemaining = req.body.planDuration;
   // req.body.planDuration = req.body.planDuration * 24 * 60 * 60 * 1000;
   // req.body.daysRemaining = req.body.planDuration;

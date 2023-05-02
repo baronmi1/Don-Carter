@@ -15,12 +15,9 @@ router
 router
   .route("/:id")
   .get(walletController.getAWallet)
-  .patch(
-    // authController.protect,
-    walletController.updateWallet
-  )
+  .patch(authController.protect, walletController.updateWallet)
   .delete(
-    // authController.protect,
+    authController.protect,
     // authController.restrictTo("room"),
     walletController.deleteWallet
   );
