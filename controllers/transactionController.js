@@ -236,23 +236,25 @@ const startActiveDeposit = async (
 
 exports.runPersonalDeposit = async (username) => {
   const deposit = await Active.findOne({ username: username });
-  const duration = deposit.serverTime * 1 + deposit.planDuration * 1;
-  const planCycle = (duration - new Date().getTime()) % deposit.planCycle;
-  const timeRemaining = duration - planCycle;
-  timeFractionDeposit(
-    deposit,
-    ((deposit.amount * deposit.percent) / 100).toFixed(2),
-    planCycle
-  );
-
-  setTimeout(async () => {
-    startActiveDeposit(
+  if (deposit) {
+    const duration = deposit.serverTime * 1 + deposit.planDuration * 1;
+    const planCycle = (duration - new Date().getTime()) % deposit.planCycle;
+    const timeRemaining = duration - planCycle;
+    timeFractionDeposit(
       deposit,
-      deposit.earning,
-      timeRemaining,
-      deposit.planCycle
+      ((deposit.amount * deposit.percent) / 100).toFixed(2),
+      planCycle
     );
-  }, planCycle + 200);
+
+    setTimeout(async () => {
+      startActiveDeposit(
+        deposit,
+        deposit.earning,
+        timeRemaining,
+        deposit.planCycle
+      );
+    }, planCycle + 200);
+  }
 };
 
 const timeFractionDeposit = async (activeDeposit, earning, interval) => {
