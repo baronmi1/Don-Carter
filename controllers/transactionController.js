@@ -209,7 +209,7 @@ const startActiveDeposit = async (
       walletId: activeDeposit.walletId,
       time: activeDeposit.time,
     };
-    const timeRemaining = 0;
+    let timeRemaining = 0;
     timeRemaining += activeDeposit.daysRemaining - interval;
     if (timeRemaining <= 0) {
       console.log(`the time has elapsed completely`);
