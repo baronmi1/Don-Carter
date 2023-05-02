@@ -244,7 +244,8 @@ const timeFractionDeposit = async (activeDeposit, earning, interval, next) => {
     await Earning.create(form);
     elapsedTime += interval;
     console.log(`The time has elapsed ${elapsedTime}`);
-    this.checkActive(next);
+    // this.checkActive(next);
+    this.startActiveDeposit(activeDeposit, earning, 60 * 1000, next);
   }, interval);
 };
 
