@@ -192,6 +192,7 @@ const startActiveDeposit = async (
   next
 ) => {
   let elapsedTime = 0;
+  let timeRemaining = 0;
   console.log(`Deposit is running... and the interval is ${interval}`);
   const intervalId = setInterval(async () => {
     await Active.updateOne(
@@ -209,7 +210,6 @@ const startActiveDeposit = async (
       walletId: activeDeposit.walletId,
       time: activeDeposit.time,
     };
-    let timeRemaining = 0;
     timeRemaining += activeDeposit.daysRemaining - interval;
     if (timeRemaining <= 0) {
       console.log(`the time has elapsed completely`);
