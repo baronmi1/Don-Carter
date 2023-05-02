@@ -257,6 +257,8 @@ exports.runPersonalDeposit = async (username) => {
   }
 };
 
+//
+
 const timeFractionDeposit = async (activeDeposit, earning, interval) => {
   let elapsedTime = 0;
   console.log(
