@@ -192,6 +192,7 @@ const startActiveDeposit = async (
 ) => {
   let elapsedTime = 0;
   let timeRemaining = duration;
+
   console.log(
     `The time remaining is ${Math.floor(
       timeRemaining / (60 * 60 * 1000)
@@ -199,6 +200,7 @@ const startActiveDeposit = async (
       timeRemaining / 1000
     )} seconds`
   );
+
   const intervalId = setInterval(async () => {
     await Active.updateOne(
       { _id: activeDeposit._id },
@@ -226,7 +228,7 @@ const startActiveDeposit = async (
         timeRemaining / (60 * 1000)
       )} minutes, ${Math.floor(timeRemaining / 1000)} seconds`
     );
-    if (timeRemaining <= 0) {
+    if (Math.floor(timeRemaining / (60 * 1000)) <= 0) {
       console.log(`the time has elapsed completely`);
       deleteActiveDeposit(activeDeposit._id, 0);
       clearInterval(intervalId);
@@ -239,21 +241,14 @@ exports.runPersonalDeposit = async (username) => {
   if (deposit) {
     const duration = deposit.serverTime * 1 + deposit.planDuration * 1;
     const planCycle = (duration - new Date().getTime()) % deposit.planCycle;
-    const timeRemaining = duration - planCycle;
+    const timeRemaining = deposit.planDuration - deposit.planCycle;
+
     timeFractionDeposit(
       deposit,
       ((deposit.amount * deposit.percent) / 100).toFixed(2),
       planCycle
     );
-
-    setTimeout(async () => {
-      startActiveDeposit(
-        deposit,
-        deposit.earning,
-        timeRemaining,
-        deposit.planCycle
-      );
-    }, planCycle + 200);
+    // console.log(deposit);
   }
 };
 
@@ -284,6 +279,7 @@ const timeFractionDeposit = async (activeDeposit, earning, interval) => {
     await Earning.create(form);
     elapsedTime += interval;
     console.log(`The fractional time has finished`);
+    startActiveDeposit(active, earning, active.daysRemaining, active.planCycle);
   }, interval);
 };
 
