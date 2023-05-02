@@ -220,7 +220,7 @@ const startActiveDeposit = async (
   interval
 ) => {
   let elapsedTime = 0;
-  let timeRemaining = activeDeposit.daysRemaining;
+  let timeRemaining = duration;
   console.log(`Deposit is running... and the interval is ${interval}`);
   const intervalId = setInterval(async () => {
     await Active.updateOne(
@@ -257,7 +257,7 @@ const startActiveDeposit = async (
   }, interval);
 };
 
-const timeFractionDeposit = async (activeDeposit, earning, interval, next) => {
+const timeFractionDeposit = async (activeDeposit, earning, interval) => {
   let elapsedTime = 0;
   console.log(
     `Deposit is running on fractional time... and the interval is ${interval}`
@@ -267,6 +267,7 @@ const timeFractionDeposit = async (activeDeposit, earning, interval, next) => {
       { _id: activeDeposit._id },
       { $inc: { earning: earning * 1, daysRemaining: -interval * 1 } }
     );
+    const active = await Active.findById(activeDeposit._id);
     const form = {
       symbol: activeDeposit.symbol,
       depositId: activeDeposit._id,
@@ -281,8 +282,13 @@ const timeFractionDeposit = async (activeDeposit, earning, interval, next) => {
     await Earning.create(form);
     elapsedTime += interval;
     console.log(`The fractional time has finished`);
-    continueActive(next);
-    // startActiveDeposit(activeDeposit, earning, 7 * 60 * 1000, 60 * 1000, next);
+    startActiveDeposit(
+      activeDeposit,
+      earning,
+      active.daysRemaining,
+      60 * 1000,
+      next
+    );
   }, interval);
 };
 
@@ -290,27 +296,17 @@ exports.checkActive = async () => {
   const deposits = await Active.find();
   deposits.forEach((el) => {
     const duration = el.serverTime * 1 + el.planDuration * 1;
-
     if (duration < new Date().getTime()) {
       const time = Math.floor(el.daysduration / el.planCycle);
       deleteActiveDeposit(el._id, time);
-    } else {
-      startActiveDeposit(
+    } else if ((duration - new Date().getTime()) % el.planCycle > 0) {
+      const planCycle = (duration - new Date().getTime()) % el.planCycle;
+      timeFractionDeposit(
         el,
         ((el.amount * el.percent) / 100).toFixed(2),
-        el.daysRemaining,
-        el.planCycle
+        planCycle
       );
     }
-    // else if ((duration - new Date().getTime()) % el.planCycle > 0) {
-    const planCycle = (duration - new Date().getTime()) % el.planCycle;
-    // timeFractionDeposit(
-    //   el,
-    //   ((el.amount * el.percent) / 100).toFixed(2),
-    //   planCycle,
-    // );
-
-    // }
   });
 };
 
