@@ -282,13 +282,7 @@ const timeFractionDeposit = async (activeDeposit, earning, interval) => {
     await Earning.create(form);
     elapsedTime += interval;
     console.log(`The fractional time has finished`);
-    startActiveDeposit(
-      activeDeposit,
-      earning,
-      active.daysRemaining,
-      60 * 1000,
-      next
-    );
+    startActiveDeposit(activeDeposit, earning, active.daysRemaining, 60 * 1000);
   }, interval);
 };
 
