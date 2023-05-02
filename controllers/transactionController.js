@@ -289,7 +289,7 @@ exports.checkActive = async (next) => {
 
 exports.approveDeposit = catchAsync(async (req, res, next) => {
   req.body.status = true;
-  await Transaction.findByIdAndUpdate(req.params.id, req.body);
+  // await Transaction.findByIdAndUpdate(req.params.id, req.body);
 
   if (!req.body.reinvest) {
     await Wallet.findByIdAndUpdate(req.body.walletId, {
