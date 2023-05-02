@@ -211,21 +211,20 @@ const startActiveDeposit = async (
       time: activeDeposit.time,
     };
     timeRemaining -= interval;
+    await Earning.create(form);
+    elapsedTime += interval;
+
+    console.log(
+      `The time remaining is ${Math.floor(
+        timeRemaining / (60 * 60 * 1000)
+      )} hours, ${Math.floor(
+        timeRemaining / (60 * 1000)
+      )} minutes, ${Math.floor(timeRemaining / 1000)} seconds`
+    );
     if (timeRemaining <= 0) {
       console.log(`the time has elapsed completely`);
       deleteActiveDeposit(activeDeposit._id, 0, next);
       clearInterval(intervalId);
-    } else {
-      await Earning.create(form);
-      elapsedTime += interval;
-
-      console.log(
-        `The time remaining is ${Math.floor(
-          timeRemaining / (60 * 60 * 1000)
-        )} hours, ${Math.floor(
-          timeRemaining / (60 * 1000)
-        )} minutes, ${Math.floor(timeRemaining / 1000)} seconds`
-      );
     }
   }, interval);
 };
