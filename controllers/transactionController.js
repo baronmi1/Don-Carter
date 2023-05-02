@@ -266,24 +266,25 @@ exports.checkActive = async (next) => {
     if (duration < new Date().getTime()) {
       const time = Math.floor(el.daysduration / el.planCycle);
       deleteActiveDeposit(el._id, time, next);
-    } else if ((duration - new Date().getTime()) % el.planCycle > 0) {
-      const planCycle = (duration - new Date().getTime()) % el.planCycle;
-      timeFractionDeposit(
-        el,
-        ((el.amount * el.percent) / 100).toFixed(2),
-        planCycle,
-        next
-      );
     }
-    // else {
-    //   startActiveDeposit(
+    // else if ((duration - new Date().getTime()) % el.planCycle > 0) {
+    //   const planCycle = (duration - new Date().getTime()) % el.planCycle;
+    //   timeFractionDeposit(
     //     el,
     //     ((el.amount * el.percent) / 100).toFixed(2),
-    //     el.daysRemaining,
-    //     el.planCycle,
+    //     planCycle,
     //     next
     //   );
     // }
+    else {
+      startActiveDeposit(
+        el,
+        ((el.amount * el.percent) / 100).toFixed(2),
+        el.daysRemaining,
+        el.planCycle,
+        next
+      );
+    }
   });
 };
 
@@ -311,7 +312,7 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
     });
   }
   req.body.planCycle = 60 * 1000;
-  req.body.planDuration = 7 * 60 * 1000;
+  req.body.planDuration = 4 * 60 * 1000;
   req.body.daysRemaining = req.body.planDuration;
   // req.body.planDuration = req.body.planDuration * 24 * 60 * 60 * 1000;
   // req.body.daysRemaining = req.body.planDuration;
