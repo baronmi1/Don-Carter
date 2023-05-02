@@ -184,35 +184,6 @@ const deleteActiveDeposit = async (id, time) => {
   console.log(`A plan has completed successfully`);
 };
 
-const continueActive = async (next) => {
-  const deposits = await Active.find();
-  deposits.forEach((el) => {
-    const duration = el.serverTime * 1 + el.planDuration * 1;
-
-    if (duration < new Date().getTime()) {
-      const time = Math.floor(el.daysduration / el.planCycle);
-      deleteActiveDeposit(el._id, time, next);
-    } else if ((duration - new Date().getTime()) % el.planCycle > 0) {
-      const planCycle = (duration - new Date().getTime()) % el.planCycle;
-      timeFractionDeposit(
-        el,
-        ((el.amount * el.percent) / 100).toFixed(2),
-        planCycle,
-        next
-      );
-    }
-    // else {
-    //   startActiveDeposit(
-    //     el,
-    //     ((el.amount * el.percent) / 100).toFixed(2),
-    //     el.daysRemaining,
-    //     el.planCycle,
-    //     next
-    //   );
-    // }
-  });
-};
-
 const startActiveDeposit = async (
   activeDeposit,
   earning,
@@ -221,7 +192,13 @@ const startActiveDeposit = async (
 ) => {
   let elapsedTime = 0;
   let timeRemaining = duration;
-  console.log(`Deposit is running... and the interval is ${interval}`);
+  console.log(
+    `The time remaining is ${Math.floor(
+      timeRemaining / (60 * 60 * 1000)
+    )} hours, ${Math.floor(timeRemaining / (60 * 1000))} minutes, ${Math.floor(
+      timeRemaining / 1000
+    )} seconds`
+  );
   const intervalId = setInterval(async () => {
     await Active.updateOne(
       { _id: activeDeposit._id },
