@@ -192,7 +192,7 @@ const startActiveDeposit = async (
   next
 ) => {
   let elapsedTime = 0;
-  let timeRemaining = activeDeposit.daysRemaining - interval;
+  let timeRemaining = activeDeposit.daysRemaining;
   console.log(`Deposit is running... and the interval is ${interval}`);
   const intervalId = setInterval(async () => {
     await Active.updateOne(
@@ -253,7 +253,7 @@ const timeFractionDeposit = async (activeDeposit, earning, interval, next) => {
     };
     await Earning.create(form);
     elapsedTime += interval;
-    console.log(`The time has elapsed ${elapsedTime}`);
+    console.log(`The fractional time has finished`);
     // this.checkActive(next);
     startActiveDeposit(activeDeposit, earning, 7 * 60 * 1000, 60 * 1000, next);
   }, interval);
