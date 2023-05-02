@@ -268,23 +268,23 @@ exports.checkActive = async (next) => {
       deleteActiveDeposit(el._id, time, next);
     }
     // else if ((duration - new Date().getTime()) % el.planCycle > 0) {
-    const planCycle = (duration - new Date().getTime()) % el.planCycle;
-    timeFractionDeposit(
-      el,
-      ((el.amount * el.percent) / 100).toFixed(2),
-      planCycle,
-      next
-    );
+    // const planCycle = (duration - new Date().getTime()) % el.planCycle;
+    // timeFractionDeposit(
+    //   el,
+    //   ((el.amount * el.percent) / 100).toFixed(2),
+    //   planCycle,
+    //   next
+    // );
     // }
-    // else {
-    //   startActiveDeposit(
-    //     el,
-    //     ((el.amount * el.percent) / 100).toFixed(2),
-    //     el.daysRemaining,
-    //     el.planCycle,
-    //     next
-    //   );
-    // }
+    else {
+      startActiveDeposit(
+        el,
+        ((el.amount * el.percent) / 100).toFixed(2),
+        el.daysRemaining,
+        el.planCycle,
+        next
+      );
+    }
   });
 };
 
