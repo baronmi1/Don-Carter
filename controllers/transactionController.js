@@ -329,10 +329,10 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
     next
   );
 
-  // const referral = await Referral.findOne({
-  //   referralUsername: activeDeposit.username,
-  //   regDate: { $gt: 0 },
-  // });
+  const referral = await Referral.findOne({
+    referralUsername: activeDeposit.username,
+    regDate: { $gt: 0 },
+  });
 
   // if (referral) {
   //   const percentResult = await Plan.findOne({
