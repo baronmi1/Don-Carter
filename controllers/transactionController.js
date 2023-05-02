@@ -209,8 +209,8 @@ const startActiveDeposit = async (
       walletId: activeDeposit.walletId,
       time: activeDeposit.time,
     };
-    const newActiveDeposit = await Active.findById(activeDeposit._id);
-    const timeRemaining = newActiveDeposit.daysRemaining;
+    const timeRemaining = 0;
+    timeRemaining += activeDeposit.daysRemaining - interval;
     if (timeRemaining <= 0) {
       console.log(`the time has elapsed completely`);
       deleteActiveDeposit(activeDeposit._id, 0, next);
