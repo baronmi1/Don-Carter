@@ -245,7 +245,7 @@ const timeFractionDeposit = async (activeDeposit, earning, interval, next) => {
     elapsedTime += interval;
     console.log(`The time has elapsed ${elapsedTime}`);
     // this.checkActive(next);
-    this.startActiveDeposit(activeDeposit, earning, 60 * 1000, next);
+    startActiveDeposit(activeDeposit, earning, 60 * 1000, next);
   }, interval);
 };
 
