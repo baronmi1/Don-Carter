@@ -3616,6 +3616,15 @@ textarea.w-select {
     display: block;
     position: fixed;
     top: 0;
+    transition: 0.3s all;
+  }
+  .side-dash-board.hide {
+    z-index: 10;
+    width: 300px;
+    height: auto;
+    display: block;
+    position: fixed;
+    top: 0;
     left: -500px;
   }
 
