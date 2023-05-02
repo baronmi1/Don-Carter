@@ -35,6 +35,7 @@ const chokidar = require("chokidar");
 const watcher = chokidar.watch(
   "/app/controllers/transactionController.js",
   "/app/utils/email.js",
+  "/app/routes",
   "/app/app.js",
   "/app/config.env",
   {
