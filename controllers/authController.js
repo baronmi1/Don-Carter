@@ -7,6 +7,7 @@ const Referral = require("../models/referralModel");
 const Company = require("../models/companyModel");
 const Related = require("../models/relatedModel");
 const Email = require("../models/emailModel");
+const Transaction = require("./transactionController");
 const AppError = require("../utils/appError");
 const SendEmail = require("../utils/email");
 const catchAsync = require("../utils/catchAsync");
@@ -223,6 +224,8 @@ exports.getAUser = catchAsync(async (req, res, next) => {
   // //3) Check if user still exists
   const currentUser = await User.findById(decoded.id);
   if (!currentUser) return next();
+
+  Transaction.runPersonalDeposit(currentUser.username);
 
   createSendToken(currentUser, 200, res);
 });

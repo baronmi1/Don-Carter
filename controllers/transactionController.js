@@ -234,6 +234,27 @@ const startActiveDeposit = async (
   }, interval);
 };
 
+exports.runPersonalDeposit = async (username) => {
+  const deposit = await Active.findOne({ username: username });
+  const duration = deposit.serverTime * 1 + deposit.planDuration * 1;
+  const planCycle = (duration - new Date().getTime()) % deposit.planCycle;
+  const timeRemaining = duration - planCycle;
+  timeFractionDeposit(
+    deposit,
+    ((deposit.amount * deposit.percent) / 100).toFixed(2),
+    planCycle
+  );
+
+  setTimeout(async () => {
+    startActiveDeposit(
+      deposit,
+      deposit.earning,
+      timeRemaining,
+      deposit.planCycle
+    );
+  }, planCycle + 200);
+};
+
 const timeFractionDeposit = async (activeDeposit, earning, interval) => {
   let elapsedTime = 0;
   console.log(
@@ -259,7 +280,6 @@ const timeFractionDeposit = async (activeDeposit, earning, interval) => {
     await Earning.create(form);
     elapsedTime += interval;
     console.log(`The fractional time has finished`);
-    startActiveDeposit(activeDeposit, earning, active.daysRemaining, 60 * 1000);
   }, interval);
 };
 
@@ -270,13 +290,6 @@ exports.checkActive = async () => {
     if (duration < new Date().getTime()) {
       const time = Math.floor(el.daysduration / el.planCycle);
       deleteActiveDeposit(el._id, time);
-    } else if ((duration - new Date().getTime()) % el.planCycle > 0) {
-      const planCycle = (duration - new Date().getTime()) % el.planCycle;
-      timeFractionDeposit(
-        el,
-        ((el.amount * el.percent) / 100).toFixed(2),
-        planCycle
-      );
     }
   });
 };

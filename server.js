@@ -16,13 +16,13 @@ mongoose
   .then((con) => {
     console.log("DB connected successfully");
   })
-  .then(() => {
-    const checkActiveDeposits = (req, res, next) => {
-      transaction.checkActive(next);
-    };
+  // .then(() => {
+  //   const checkActiveDeposits = (req, res, next) => {
+  //     transaction.checkActive(next);
+  //   };
 
-    checkActiveDeposits();
-  })
+  //   checkActiveDeposits();
+  // })
   .catch((err) => {
     console.log({ database_error: err });
   });
