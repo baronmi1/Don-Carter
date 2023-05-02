@@ -151,7 +151,7 @@ exports.getDepositList = catchAsync(async (req, res, next) => {
   });
 });
 
-const deleteActiveDeposit = async (id, time, next) => {
+const deleteActiveDeposit = async (id, time) => {
   const activeResult = await Active.findById(id);
 
   await Wallet.findByIdAndUpdate(activeResult.walletId, {
@@ -217,8 +217,7 @@ const startActiveDeposit = async (
   activeDeposit,
   earning,
   duration,
-  interval,
-  next
+  interval
 ) => {
   let elapsedTime = 0;
   let timeRemaining = activeDeposit.daysRemaining;
@@ -252,7 +251,7 @@ const startActiveDeposit = async (
     );
     if (timeRemaining <= 0) {
       console.log(`the time has elapsed completely`);
-      deleteActiveDeposit(activeDeposit._id, 0, next);
+      deleteActiveDeposit(activeDeposit._id, 0);
       clearInterval(intervalId);
     }
   }, interval);
@@ -287,31 +286,31 @@ const timeFractionDeposit = async (activeDeposit, earning, interval, next) => {
   }, interval);
 };
 
-exports.checkActive = async (next) => {
+exports.checkActive = async () => {
   const deposits = await Active.find();
   deposits.forEach((el) => {
     const duration = el.serverTime * 1 + el.planDuration * 1;
 
     if (duration < new Date().getTime()) {
       const time = Math.floor(el.daysduration / el.planCycle);
-      deleteActiveDeposit(el._id, time, next);
-    } else if ((duration - new Date().getTime()) % el.planCycle > 0) {
-      const planCycle = (duration - new Date().getTime()) % el.planCycle;
-      timeFractionDeposit(
+      deleteActiveDeposit(el._id, time);
+    } else {
+      startActiveDeposit(
         el,
         ((el.amount * el.percent) / 100).toFixed(2),
-        planCycle,
+        el.daysRemaining,
+        el.planCycle,
         next
       );
     }
-    // else {
-    //   startActiveDeposit(
-    //     el,
-    //     ((el.amount * el.percent) / 100).toFixed(2),
-    //     el.daysRemaining,
-    //     el.planCycle,
-    //     next
-    //   );
+    // else if ((duration - new Date().getTime()) % el.planCycle > 0) {
+    const planCycle = (duration - new Date().getTime()) % el.planCycle;
+    // timeFractionDeposit(
+    //   el,
+    //   ((el.amount * el.percent) / 100).toFixed(2),
+    //   planCycle,
+    // );
+
     // }
   });
 };
@@ -353,8 +352,7 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
     activeDeposit,
     earning,
     req.body.planDuration * 1,
-    req.body.planCycle * 1,
-    next
+    req.body.planCycle * 1
   );
 
   // const referral = await Referral.findOne({
