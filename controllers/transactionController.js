@@ -153,35 +153,36 @@ exports.getDepositList = catchAsync(async (req, res, next) => {
 
 const deleteActiveDeposit = async (id, time) => {
   const activeResult = await Active.findById(id);
-
-  await Wallet.findByIdAndUpdate(activeResult.walletId, {
-    $inc: {
-      balance:
-        activeResult.earning * 1 +
-        Number((activeResult.amount * activeResult.percent * time) / 100),
-    },
-  });
-  await User.findOneAndUpdate(
-    { username: activeResult.username },
-    {
+  if (activeResult) {
+    await Wallet.findByIdAndUpdate(activeResult.walletId, {
       $inc: {
-        totalBalance:
+        balance:
           activeResult.earning * 1 +
           Number((activeResult.amount * activeResult.percent * time) / 100),
       },
-    }
-  );
+    });
+    await User.findOneAndUpdate(
+      { username: activeResult.username },
+      {
+        $inc: {
+          totalBalance:
+            activeResult.earning * 1 +
+            Number((activeResult.amount * activeResult.percent * time) / 100),
+        },
+      }
+    );
 
-  await Active.findByIdAndDelete(activeResult._id);
-  // const user = await User.findOne({ username: activeResult.username });
-  // sendTransactionEmail(
-  //   user,
-  //   `investment-completion`,
-  //   activeResult.amount,
-  //   next
-  // );
+    await Active.findByIdAndDelete(activeResult._id);
+    // const user = await User.findOne({ username: activeResult.username });
+    // sendTransactionEmail(
+    //   user,
+    //   `investment-completion`,
+    //   activeResult.amount,
+    //   next
+    // );
 
-  console.log(`A plan has completed successfully`);
+    console.log(`A plan has completed successfully`);
+  }
 };
 
 const startActiveDeposit = async (
@@ -240,32 +241,45 @@ const startActiveDeposit = async (
   }, interval);
 };
 
-exports.runPersonalDeposit = async (username) => {
-  const deposit = await Active.findOne({ username: username });
-  if (deposit) {
-    const duration = deposit.serverTime * 1 + deposit.planDuration * 1;
-    const planCycle = (duration - new Date().getTime()) % deposit.planCycle;
-    const timeRemaining = deposit.planDuration - deposit.planCycle;
+const continueActiveDeposit = async (deposit) => {
+  const timeRemaining = deposit.daysRemaining % deposit.planCycle;
+  console.log(
+    `The time remaining is ${Math.floor(
+      timeRemaining / (60 * 60 * 1000)
+    )} hours, ${Math.floor(timeRemaining / (60 * 1000))} minutes, ${Math.floor(
+      timeRemaining / 1000
+    )} seconds`
+  );
 
+  if (timeRemaining > 0) {
     timeFractionDeposit(
       deposit,
       ((deposit.amount * deposit.percent) / 100).toFixed(2),
-      planCycle
+      timeRemaining
     );
-    // console.log(deposit);
+  } else {
+    deleteActiveDeposit(deposit, 0);
   }
 };
+
+exports.runPersonalDeposit = async (username) => {};
 
 const timeFractionDeposit = async (activeDeposit, earning, interval) => {
   let elapsedTime = 0;
   console.log(
-    `Deposit is running on fractional time... and the interval is ${interval}`
+    `Deposit is running on fractional time... and it will be executed in ${Math.floor(
+      interval / (60 * 60 * 1000)
+    )} hours, ${Math.floor(interval / (60 * 1000))} minutes, ${Math.floor(
+      interval / 1000
+    )} seconds`
   );
+
   setTimeout(async () => {
     await Active.updateOne(
       { _id: activeDeposit._id },
       { $inc: { earning: earning * 1, daysRemaining: -interval * 1 } }
     );
+
     const active = await Active.findById(activeDeposit._id);
     const form = {
       symbol: activeDeposit.symbol,
@@ -278,22 +292,48 @@ const timeFractionDeposit = async (activeDeposit, earning, interval) => {
       walletId: activeDeposit.walletId,
       time: activeDeposit.time,
     };
+
     await Earning.create(form);
     elapsedTime += interval;
     console.log(`The fractional time has finished`);
-    startActiveDeposit(active, earning, active.daysRemaining, active.planCycle);
+    continueActiveDeposit(
+      active,
+      earning,
+      active.daysRemaining,
+      active.planCycle
+    );
   }, interval);
 };
 
 exports.checkActive = async () => {
   const deposits = await Active.find();
-  deposits.forEach((el) => {
-    const duration = el.serverTime * 1 + el.planDuration * 1;
-    if (duration < new Date().getTime()) {
-      const time = Math.floor(el.daysduration / el.planCycle);
-      deleteActiveDeposit(el._id, time);
-    }
-  });
+  if (deposits) {
+    deposits.forEach((el) => {
+      const duration = el.serverTime * 1 + el.planDuration * 1;
+      if (duration < new Date().getTime()) {
+        const time = Math.floor(el.planDuration / el.planCycle);
+        deleteActiveDeposit(el._id, time);
+      } else {
+        const timeRemaining = el.daysRemaining % el.planCycle;
+        console.log(
+          `The time remaining is ${timeRemaining} ${Math.floor(
+            timeRemaining / (60 * 60 * 1000)
+          )} hours, ${Math.floor(
+            timeRemaining / (60 * 1000)
+          )} minutes, ${Math.floor(timeRemaining / 1000)} seconds`
+        );
+        // if (timeRemaining > 0) {
+        timeFractionDeposit(
+          el,
+          ((el.amount * el.percent) / 100).toFixed(2),
+          el.planCycle
+        );
+        // }
+      }
+    });
+  } else {
+    console.log("No active deposit");
+  }
 };
 
 exports.approveDeposit = catchAsync(async (req, res, next) => {
@@ -320,7 +360,7 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
     });
   }
   req.body.planCycle = 60 * 1000;
-  req.body.planDuration = 7 * 60 * 1000;
+  req.body.planDuration = 4 * 60 * 1000;
   req.body.daysRemaining = req.body.planDuration;
   // req.body.planDuration = req.body.planDuration * 24 * 60 * 60 * 1000;
   // req.body.daysRemaining = req.body.planDuration;
