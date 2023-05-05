@@ -291,7 +291,7 @@ const timeFractionDeposit = async (activeDeposit, earning, interval) => {
       referredBy: activeDeposit.referralUsername,
       walletName: activeDeposit.walletName,
       walletId: activeDeposit.walletId,
-      time: activeDeposit.time,
+      time: active.time,
     };
 
     await Earning.create(form);
@@ -558,4 +558,3 @@ exports.getEarnings = catchAsync(async (req, res, next) => {
     resultLength: resultLen.length,
   });
 });
-//
