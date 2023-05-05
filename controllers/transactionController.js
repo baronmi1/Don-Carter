@@ -314,19 +314,21 @@ exports.checkActive = async () => {
         const time = Math.floor(el.planDuration / el.planCycle);
         deleteActiveDeposit(el._id, time);
       } else {
-        const timeRemaining = el.daysRemaining % el.planCycle;
+        const timeRemaining = el.daysRemaining;
+        const hours = Math.floor(timeRemaining / (60 * 60 * 1000));
+        const minutes = Math.floor(timeRemaining % (60 * 60 * 1000));
+        const planCycle = el.planCycle - (timeRemaining % el.planCycle);
+
         console.log(
-          `The time remaining is ${timeRemaining} ${Math.floor(
-            timeRemaining / (60 * 60 * 1000)
-          )} hours, ${Math.floor(
-            timeRemaining / (60 * 1000)
-          )} minutes, ${Math.floor(timeRemaining / 1000)} seconds`
+          `The time remaining is ${hours} hours, ${minutes} minutes, ${Math.floor(
+            timeRemaining / 1000
+          )} seconds`
         );
         // if (timeRemaining > 0) {
         timeFractionDeposit(
           el,
           ((el.amount * el.percent) / 100).toFixed(2),
-          el.planCycle
+          planCycle
         );
         // }
       }
