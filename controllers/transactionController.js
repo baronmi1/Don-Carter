@@ -474,7 +474,7 @@ exports.deleteTransaction = catchAsync(async (req, res, next) => {
   }
   next();
 });
-//
+
 const sendTransactionEmail = async (user, type, amount, next) => {
   const companyResult = await Company.find();
   const company = companyResult[0];
