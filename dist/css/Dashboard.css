@@ -2551,6 +2551,7 @@ textarea.w-select {
 }
 
 .short-card-holder {
+  flex-wrap: wrap;
   flex-direction: row;
   justify-content: space-between;
   margin-bottom: 0;
@@ -2558,6 +2559,7 @@ textarea.w-select {
 }
 
 .each-short-card {
+  margin-bottom: 20px;
   width: 24%;
   background-color: #232323;
   border-radius: 5px;

@@ -68,26 +68,40 @@ exports.updateEmail = catchAsync(async (req, res, next) => {
 exports.sendEmail = catchAsync(async (req, res, next) => {
   const { users, email } = req.body;
 
-  const from = `info@zivikbank.com`;
+  const companyResult = await Company.find();
+  const company = companyResult[0];
+  const domainName = company.companyDomain;
+  const companyName = company.companyName;
+  const resetURL = "";
+
+  const from = `${company.systemEmail}`;
+  const content = email.content.replace(
+    "{{company-name}}",
+    company.companyName
+  );
+  const warning = email.warning.replace(
+    "{{company-name}}",
+    company.companyName
+  );
 
   users.forEach((user) => {
     try {
-      const resetURL = `${req.protocol}://${req.get("host")}/${req.url}`;
-      const banner = `${req.protocol}://${req.get("host")}/${req.url}/uploads/${
-        email.banner
-      }`;
+      const banner = `${domainName}/uploads/${email.banner}`;
       new SendEmail(
+        companyName,
+        domainName,
         from,
         user,
-        email.name,
+        email.template,
         email.title,
         banner,
-        email.content,
+        content,
         email.headerColor,
         email.footerColor,
         email.mainColor,
         email.greeting,
-        email.warning
+        warning,
+        resetURL
       ).sendEmail();
     } catch (err) {
       return next(
