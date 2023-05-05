@@ -117,3 +117,12 @@ exports.getAWallet = catchAsync(async (req, res, next) => {
     data: wallets,
   });
 });
+
+exports.getAWalletId = catchAsync(async (req, res, next) => {
+  const wallet = await Wallet.findById(req.params.id);
+
+  res.status(200).json({
+    status: "success",
+    data: wallet,
+  });
+});

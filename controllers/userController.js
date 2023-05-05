@@ -1,7 +1,7 @@
 const { token } = require("morgan");
 const User = require("../models/userModel");
 const Related = require("../models/relatedModel");
-// const Account = require("../models/accountsModel");
+const Wallet = require("../models/walletModel");
 const Transaction = require("../models/transactionModel");
 const AppError = require("../utils/appError");
 const APIFeatures = require("../utils/apiFeatures");
@@ -76,46 +76,26 @@ exports.editUser = catchAsync(async (req, res, next) => {
     return next(new AppError("No user found with that ID", 404));
   }
 
-  if (req.body.emailOption == "Yes") {
-    const companyResult = await Company.find();
-    const company = companyResult[0];
-    const email =
-      Number(req.body.withdraw) > 0
-        ? await Email.findOne({ template: "withdrawal-approval" })
-        : await Email.findOne({ template: "deposit-approval" });
+  let totalBalance = 0;
+  const wallets = JSON.parse(req.body.wallets);
+  wallets.forEach((el) => {
+    totalBalance += el.balance;
+  });
 
-    const content = email.content
-      .replace("{{full-name}}", `${user.firstName} ${user.lastName}`)
-      .replace("{{amount}}", req.body.amount);
-    const domainName = company.companyDomain;
-    const resetURL = "";
-    const from = company.systemEmail;
+  wallets.forEach(async (el) => {
+    const form = {
+      balance: el.balance,
+      walletAddress: el.walletAddress,
+    };
+    await Wallet.findByIdAndUpdate(el._id, form);
+  });
 
-    try {
-      const banner = `${domainName}/uploads/${email.banner}`;
-      new SendEmail(
-        from,
-        user,
-        email.name,
-        email.title,
-        banner,
-        content,
-        email.headerColor,
-        email.footerColor,
-        email.mainColor,
-        email.greeting,
-        email.warning,
-        resetURL
-      ).sendEmail();
-    } catch (err) {
-      return next(
-        new AppError(
-          `There was an error sending the email. Try again later!, ${err}`,
-          500
-        )
-      );
+  await User.updateOne(
+    { _id: req.params.id },
+    {
+      $inc: { totalBalance: totalBalance * 1 },
     }
-  }
+  );
 
   req.fileNames = files;
 

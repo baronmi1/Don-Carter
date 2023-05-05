@@ -188,22 +188,21 @@ const deleteActiveDeposit = async (id, time) => {
 const startActiveDeposit = async (
   activeDeposit,
   earning,
-  duration,
+  timeRemaining,
   interval
 ) => {
-  let elapsedTime = 0;
-  let timeRemaining = duration;
+  const seconds = Math.floor((timeRemaining / 1000) % 60);
+  const minutes = Math.floor((timeRemaining / (1000 * 60)) % 60);
+  const hours = Math.floor((timeRemaining / (1000 * 60 * 60)) % 24);
 
+  // print the result
   console.log(
-    `The time remaining is ${Math.floor(
-      timeRemaining / (60 * 60 * 1000)
-    )} hours, ${Math.floor(timeRemaining / (60 * 1000))} minutes, ${Math.floor(
-      timeRemaining / 1000
-    )} seconds`
+    `The next earning will be executed in: ${hours} hours, ${minutes} minutes, ${seconds} seconds`
   );
 
   const intervalId = setInterval(async () => {
-    const newTime = (activeDeposit.time = new Date().getTime());
+    const newTime = (activeDeposit.time += interval);
+
     await Active.updateOne(
       { _id: activeDeposit._id },
       {
@@ -211,6 +210,7 @@ const startActiveDeposit = async (
         time: newTime,
       }
     );
+
     const form = {
       symbol: activeDeposit.symbol,
       depositId: activeDeposit._id,
@@ -222,17 +222,18 @@ const startActiveDeposit = async (
       walletId: activeDeposit.walletId,
       time: activeDeposit.time,
     };
+
     timeRemaining -= interval;
     await Earning.create(form);
-    elapsedTime += interval;
+    const seconds = Math.floor((timeRemaining / 1000) % 60);
+    const minutes = Math.floor((timeRemaining / (1000 * 60)) % 60);
+    const hours = Math.floor((timeRemaining / (1000 * 60 * 60)) % 24);
+    const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
 
     console.log(
-      `The time remaining is ${Math.floor(
-        timeRemaining / (60 * 60 * 1000)
-      )} hours, ${Math.floor(
-        timeRemaining / (60 * 1000)
-      )} minutes, ${Math.floor(timeRemaining / 1000)} seconds`
+      `The time remaining is ${days} days, ${hours} hours, ${minutes} minutes, and ${seconds} seconds`
     );
+
     if (Math.floor(timeRemaining / (60 * 1000)) <= 0) {
       console.log(`the time has elapsed completely`);
       deleteActiveDeposit(activeDeposit._id, 0);
@@ -296,16 +297,21 @@ const timeFractionDeposit = async (activeDeposit, earning, interval) => {
     await Earning.create(form);
     elapsedTime += interval;
     console.log(`The fractional time has finished`);
-    continueActiveDeposit(
-      active,
-      earning,
-      active.daysRemaining,
-      active.planCycle
-    );
+    // continueActiveDeposit(
+    //   active,
+    //   earning,
+    //   active.daysRemaining,
+    //   active.planCycle
+    // );
   }, interval);
 };
 
 exports.checkActive = async () => {
+  const timeRemaining = new Date().getTime();
+  const seconds = Math.floor((timeRemaining / 1000) % 60);
+  const minutes = Math.floor((timeRemaining / (1000 * 60)) % 60);
+  const hours = Math.floor((timeRemaining / (1000 * 60 * 60)) % 24);
+
   const deposits = await Active.find();
   if (deposits) {
     deposits.forEach((el) => {
@@ -314,23 +320,23 @@ exports.checkActive = async () => {
         const time = Math.floor(el.planDuration / el.planCycle);
         deleteActiveDeposit(el._id, time);
       } else {
-        const timeRemaining = el.daysRemaining;
-        const hours = Math.floor(timeRemaining / (60 * 60 * 1000));
-        const minutes = Math.floor(timeRemaining % (60 * 60 * 1000));
-        const planCycle = el.planCycle - (timeRemaining % el.planCycle);
-
+        const planCycle = el.planCycle - seconds * 1000;
         console.log(
-          `The time remaining is ${hours} hours, ${minutes} minutes, ${Math.floor(
-            timeRemaining / 1000
-          )} seconds`
+          `The time remaining is ${24 - hours} hours, ${
+            60 - minutes
+          } minutes, ${
+            60 - seconds
+          } seconds. Execution will begin in ${Math.floor(
+            (planCycle / (1000 * 60)) % 60
+          )} minutes and ${Math.floor((timeRemaining / 1000) % 60)} seconds.`
         );
-        // if (timeRemaining > 0) {
-        timeFractionDeposit(
+
+        startActiveDeposit(
           el,
           ((el.amount * el.percent) / 100).toFixed(2),
-          planCycle
+          el.daysRemaining,
+          el.planCycle
         );
-        // }
       }
     });
   } else {
@@ -340,7 +346,7 @@ exports.checkActive = async () => {
 
 exports.approveDeposit = catchAsync(async (req, res, next) => {
   req.body.status = true;
-  await Transaction.findByIdAndUpdate(req.params.id, req.body);
+  // await Transaction.findByIdAndUpdate(req.params.id, req.body);
 
   if (!req.body.reinvest) {
     await Wallet.findByIdAndUpdate(req.body.walletId, {
@@ -361,11 +367,11 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
       $inc: { pendingDeposit: req.body.amount * -1 },
     });
   }
-  // req.body.planCycle = 60 * 1000;
-  // req.body.planDuration = 4 * 60 * 1000;
-  // req.body.daysRemaining = req.body.planDuration;
-  req.body.planDuration = req.body.planDuration * 24 * 60 * 60 * 1000;
+  req.body.planCycle = 60 * 1000;
+  req.body.planDuration = 4 * 60 * 1000;
   req.body.daysRemaining = req.body.planDuration;
+  // req.body.planDuration = req.body.planDuration * 24 * 60 * 60 * 1000;
+  // req.body.daysRemaining = req.body.planDuration;
   req.body.serverTime = new Date().getTime();
   const earning = Number((req.body.amount * req.body.percent) / 100).toFixed(2);
   req.body.earning = 0;
@@ -382,8 +388,6 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
     referralUsername: activeDeposit.username,
     regDate: { $gt: 0 },
   });
-
-  //
 
   // if (referral) {
   //   const percentResult = await Plan.findOne({
@@ -488,32 +492,36 @@ const sendTransactionEmail = async (user, type, amount, next) => {
     company.companyName
   );
 
-  try {
-    const banner = `${domainName}/uploads/${email.banner}`;
-    new SendEmail(
-      companyName,
-      domainName,
-      from,
-      user,
-      "transaction",
-      email.title,
-      banner,
-      content,
-      email.headerColor,
-      email.footerColor,
-      email.mainColor,
-      email.greeting,
-      warning,
-      resetURL
-    ).sendEmail();
-  } catch (err) {
-    return next(
-      new AppError(
-        `There was an error sending the email. Try again later!, ${err}`,
-        500
-      )
-    );
-  }
+  const receivers = [user, from];
+
+  receivers.forEach((el) => {
+    try {
+      const banner = `${domainName}/uploads/${email.banner}`;
+      new SendEmail(
+        companyName,
+        domainName,
+        from,
+        el,
+        "transaction",
+        email.title,
+        banner,
+        content,
+        email.headerColor,
+        email.footerColor,
+        email.mainColor,
+        email.greeting,
+        warning,
+        resetURL
+      ).sendEmail();
+    } catch (err) {
+      return next(
+        new AppError(
+          `There was an error sending the email. Try again later!, ${err}`,
+          500
+        )
+      );
+    }
+  });
 };
 
 exports.sendTransactionNotification = (io, socket) => {

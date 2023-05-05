@@ -66,7 +66,10 @@ const userSchema = new mongoose.Schema({
   profilePicture: String,
   identity: String,
   idPicture: String,
-  dob: Number,
+  dob: {
+    type: Number,
+    default: 0,
+  },
   referrals: Array,
   regDate: Number,
   passwordChangedAt: Date,

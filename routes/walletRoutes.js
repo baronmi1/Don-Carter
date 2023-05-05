@@ -14,7 +14,7 @@ router
 
 router
   .route("/:id")
-  .get(walletController.getAWallet)
+  .get(walletController.getAWalletId)
   .patch(authController.protect, walletController.updateWallet)
   .delete(
     authController.protect,

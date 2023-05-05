@@ -17,8 +17,8 @@ mongoose
     console.log("DB connected successfully");
   })
   .then(() => {
-    const checkActiveDeposits = (req, res, next) => {
-      transaction.checkActive(next);
+    const checkActiveDeposits = () => {
+      transaction.checkActive();
     };
 
     checkActiveDeposits();
