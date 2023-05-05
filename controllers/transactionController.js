@@ -295,7 +295,6 @@ const timeFractionDeposit = async (activeDeposit, earning, interval) => {
     };
 
     await Earning.create(form);
-    elapsedTime += interval;
     console.log(`The fractional time has finished`);
     // continueActiveDeposit(
     //   active,
