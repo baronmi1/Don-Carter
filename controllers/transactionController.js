@@ -266,13 +266,13 @@ const continueActiveDeposit = async (deposit) => {
 exports.runPersonalDeposit = async (username) => {};
 
 const timeFractionDeposit = async (activeDeposit, earning, interval) => {
-  let elapsedTime = 0;
+  const seconds = Math.floor((interval / 1000) % 60);
+  const minutes = Math.floor((interval / (1000 * 60)) % 60);
+  const hours = Math.floor((interval / (1000 * 60 * 60)) % 24);
+  const days = Math.floor(interval / (1000 * 60 * 60 * 24));
+
   console.log(
-    `Deposit is running on fractional time... and it will be executed in ${Math.floor(
-      interval / (60 * 60 * 1000)
-    )} hours, ${Math.floor(interval / (60 * 1000))} minutes, ${Math.floor(
-      interval / 1000
-    )} seconds`
+    `Deposit is running on fractional time... and it will be executed in ${hours} hours, ${minutes} minutes, ${seconds} seconds`
   );
 
   setTimeout(async () => {
@@ -331,12 +331,18 @@ exports.checkActive = async () => {
           )} minutes and ${Math.floor((timeRemaining / 1000) % 60)} seconds.`
         );
 
-        startActiveDeposit(
+        timeFractionDeposit(
           el,
           ((el.amount * el.percent) / 100).toFixed(2),
-          el.daysRemaining,
           el.planCycle
         );
+
+        // startActiveDeposit(
+        //   el,
+        //   ((el.amount * el.percent) / 100).toFixed(2),
+        //   el.daysRemaining,
+        //   el.planCycle
+        // );
       }
     });
   } else {
