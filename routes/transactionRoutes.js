@@ -16,7 +16,7 @@ router.get("/active-deposits", transactionController.getActiveDeposits);
 router.patch(
   "/continue-earnings/:id",
   transactionController.continueEarnings,
-  transactionController.getTransactions
+  transactionController.getActiveDeposits
 );
 router.get("/earnings", transactionController.getEarnings);
 router.get("/deposit-list", transactionController.getDepositList);

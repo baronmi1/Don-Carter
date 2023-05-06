@@ -47,8 +47,8 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
         $inc: { pendingDeposit: data.amount },
       });
     }
-    sendTransactionEmail(data.user, data.transactionType, data.amount, next);
 
+    sendTransactionEmail(data.user, data.transactionType, data.amount, next);
     notificationController.createNotification(
       data.user.username,
       data.transactionType,
@@ -161,6 +161,7 @@ const deleteActiveDeposit = async (id, time) => {
           Number((activeResult.amount * activeResult.percent * time) / 100),
       },
     });
+
     await User.findOneAndUpdate(
       { username: activeResult.username },
       {
@@ -173,13 +174,13 @@ const deleteActiveDeposit = async (id, time) => {
     );
 
     await Active.findByIdAndDelete(activeResult._id);
-    // const user = await User.findOne({ username: activeResult.username });
-    // sendTransactionEmail(
-    //   user,
-    //   `investment-completion`,
-    //   activeResult.amount,
-    //   next
-    // );
+    const user = await User.findOne({ username: activeResult.username });
+    sendTransactionEmail(
+      user,
+      `investment-completion`,
+      activeResult.amount,
+      next
+    );
 
     console.log(`A plan has completed successfully`);
   }
@@ -242,116 +243,9 @@ const startActiveDeposit = async (
   }, interval);
 };
 
-const continueActiveDeposit = async (deposit) => {
-  const timeRemaining = deposit.daysRemaining % deposit.planCycle;
-  console.log(
-    `The time remaining is ${Math.floor(
-      timeRemaining / (60 * 60 * 1000)
-    )} hours, ${Math.floor(timeRemaining / (60 * 1000))} minutes, ${Math.floor(
-      timeRemaining / 1000
-    )} seconds`
-  );
-
-  if (timeRemaining > 0) {
-    timeFractionDeposit(
-      deposit,
-      ((deposit.amount * deposit.percent) / 100).toFixed(2),
-      timeRemaining
-    );
-  } else {
-    deleteActiveDeposit(deposit, 0);
-  }
-};
-
-exports.runPersonalDeposit = async (username) => {};
-
-const timeFractionDeposit = async (activeDeposit, earning, interval) => {
-  const seconds = Math.floor((interval / 1000) % 60);
-  const minutes = Math.floor((interval / (1000 * 60)) % 60);
-  const hours = Math.floor((interval / (1000 * 60 * 60)) % 24);
-  const days = Math.floor(interval / (1000 * 60 * 60 * 24));
-
-  console.log(
-    `Deposit is running on fractional time... and it will be executed in ${hours} hours, ${minutes} minutes, ${seconds} seconds`
-  );
-
-  setTimeout(async () => {
-    await Active.updateOne(
-      { _id: activeDeposit._id },
-      { $inc: { earning: earning * 1, daysRemaining: -interval * 1 } }
-    );
-
-    const active = await Active.findById(activeDeposit._id);
-    const form = {
-      symbol: activeDeposit.symbol,
-      depositId: activeDeposit._id,
-      username: activeDeposit.username,
-      amount: activeDeposit.amount,
-      earning: earning,
-      referredBy: activeDeposit.referralUsername,
-      walletName: activeDeposit.walletName,
-      walletId: activeDeposit.walletId,
-      time: active.time,
-    };
-
-    await Earning.create(form);
-    console.log(`The fractional time has finished`);
-    // continueActiveDeposit(
-    //   active,
-    //   earning,
-    //   active.daysRemaining,
-    //   active.planCycle
-    // );
-  }, interval);
-};
-
-exports.checkActive = async () => {
-  const timeRemaining = new Date().getTime();
-  const seconds = Math.floor((timeRemaining / 1000) % 60);
-  const minutes = Math.floor((timeRemaining / (1000 * 60)) % 60);
-  const hours = Math.floor((timeRemaining / (1000 * 60 * 60)) % 24);
-
-  const deposits = await Active.find();
-  if (deposits) {
-    deposits.forEach((el) => {
-      const duration = el.serverTime * 1 + el.planDuration * 1;
-      if (duration < new Date().getTime()) {
-        const time = Math.floor(el.planDuration / el.planCycle);
-        deleteActiveDeposit(el._id, time);
-      } else {
-        const planCycle = el.planCycle - seconds * 1000;
-        console.log(
-          `The time remaining is ${24 - hours} hours, ${
-            60 - minutes
-          } minutes, ${
-            60 - seconds
-          } seconds. Execution will begin in ${Math.floor(
-            (planCycle / (1000 * 60)) % 60
-          )} minutes and ${Math.floor((timeRemaining / 1000) % 60)} seconds.`
-        );
-
-        timeFractionDeposit(
-          el,
-          ((el.amount * el.percent) / 100).toFixed(2),
-          el.planCycle
-        );
-
-        // startActiveDeposit(
-        //   el,
-        //   ((el.amount * el.percent) / 100).toFixed(2),
-        //   el.daysRemaining,
-        //   el.planCycle
-        // );
-      }
-    });
-  } else {
-    console.log("No active deposit");
-  }
-};
-
 exports.approveDeposit = catchAsync(async (req, res, next) => {
   req.body.status = true;
-  // await Transaction.findByIdAndUpdate(req.params.id, req.body);
+  await Transaction.findByIdAndUpdate(req.params.id, req.body);
 
   if (!req.body.reinvest) {
     await Wallet.findByIdAndUpdate(req.body.walletId, {
@@ -372,11 +266,11 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
       $inc: { pendingDeposit: req.body.amount * -1 },
     });
   }
-  req.body.planCycle = 60 * 1000;
-  req.body.planDuration = 4 * 60 * 1000;
-  req.body.daysRemaining = req.body.planDuration;
-  // req.body.planDuration = req.body.planDuration * 24 * 60 * 60 * 1000;
+  // req.body.planCycle = 60 * 1000;
+  // req.body.planDuration = 4 * 60 * 1000;
   // req.body.daysRemaining = req.body.planDuration;
+  req.body.planDuration = req.body.planDuration * 24 * 60 * 60 * 1000;
+  req.body.daysRemaining = req.body.planDuration;
   req.body.serverTime = new Date().getTime();
   const earning = Number((req.body.amount * req.body.percent) / 100).toFixed(2);
   req.body.earning = 0;
@@ -394,54 +288,55 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
     regDate: { $gt: 0 },
   });
 
-  // if (referral) {
-  //   const percentResult = await Plan.findOne({
-  //     planName: activeDeposit.planName,
-  //   });
+  if (referral) {
+    const percentResult = await Plan.findOne({
+      planName: activeDeposit.planName,
+    });
 
-  //   await Wallet.findOneAndUpdate(
-  //     { currencyId: activeDeposit.walletId, username: referral.username },
-  //     {
-  //       $inc: {
-  //         balance: Number(
-  //           (activeDeposit.amount * percentResult.referralCommission) / 100
-  //         ),
-  //       },
-  //     }
-  //   );
-  //   const user = await User.findOneAndUpdate(
-  //     { username: referral.username },
-  //     {
-  //       $inc: {
-  //         totalBalance: Number(
-  //           (activeDeposit.amount * percentResult.referralCommission) / 100
-  //         ),
-  //       },
-  //     }
-  //   );
-  //   const form = {
-  //     username: user.username,
-  //     referralUsername: activeDeposit.username,
-  //     amount: activeDeposit.amount,
-  //     currencyName: activeDeposit.walletName,
-  //     currencySymbol: activeDeposit.symbol,
-  //     commission: Number(
-  //       (activeDeposit.amount * percentResult.referralCommission) / 100
-  //     ).toFixed(2),
-  //     time: activeDeposit.time,
-  //     regDate: referral.regDate,
-  //   };
-  //   await Referral.create(form);
-  // }
+    await Wallet.findOneAndUpdate(
+      { currencyId: activeDeposit.walletId, username: referral.username },
+      {
+        $inc: {
+          balance: Number(
+            (activeDeposit.amount * percentResult.referralCommission) / 100
+          ),
+        },
+      }
+    );
 
-  // const user = await User.findOne({ username: req.body.username });
+    const user = await User.findOneAndUpdate(
+      { username: referral.username },
+      {
+        $inc: {
+          totalBalance: Number(
+            (activeDeposit.amount * percentResult.referralCommission) / 100
+          ),
+        },
+      }
+    );
+    const form = {
+      username: user.username,
+      referralUsername: activeDeposit.username,
+      amount: activeDeposit.amount,
+      currencyName: activeDeposit.walletName,
+      currencySymbol: activeDeposit.symbol,
+      commission: Number(
+        (activeDeposit.amount * percentResult.referralCommission) / 100
+      ).toFixed(2),
+      time: activeDeposit.time,
+      regDate: referral.regDate,
+    };
+    await Referral.create(form);
+  }
 
-  // sendTransactionEmail(
-  //   user,
-  //   `${req.body.transactionType}-approval`,
-  //   req.body.amount,
-  //   next
-  // );
+  const user = await User.findOne({ username: req.body.username });
+
+  sendTransactionEmail(
+    user,
+    `${req.body.transactionType}-approval`,
+    req.body.amount,
+    next
+  );
 
   next();
 });
@@ -497,7 +392,11 @@ const sendTransactionEmail = async (user, type, amount, next) => {
     company.companyName
   );
 
-  const receivers = [user, from];
+  const form = {
+    email: from,
+    username: user.username,
+  };
+  const receivers = [user, form];
 
   receivers.forEach((el) => {
     try {
@@ -558,24 +457,18 @@ exports.getEarnings = catchAsync(async (req, res, next) => {
     resultLength: resultLen.length,
   });
 });
-//
-
-exports.updateAllTransactions = async () => {
-  const active = await Active.find();
-
-  if (active) {
-    active.forEach(async (el) => {
-      await Active.findByIdAndUpdate(el._id, { status: true });
-    });
-  }
-};
 
 exports.continueEarnings = catchAsync(async (req, res, next) => {
+  // const timeRemaining = new Date().getTime();
+  // const seconds = Math.floor((timeRemaining / 1000) % 60);
+  // const minutes = Math.floor((timeRemaining / (1000 * 60)) % 60);
+  // const hours = Math.floor((timeRemaining / (1000 * 60 * 60)) % 24);
+
   const activeDeposit = await Active.findByIdAndUpdate(req.params.id, {
     status: true,
   });
 
-  console.log("Active deposits activated");
+  console.log("Active deposits reactivated");
 
   startActiveDeposit(
     activeDeposit,
@@ -583,60 +476,5 @@ exports.continueEarnings = catchAsync(async (req, res, next) => {
     activeDeposit.daysRemaining * 1,
     activeDeposit.planCycle * 1
   );
-
-  const referral = await Referral.findOne({
-    referralUsername: activeDeposit.username,
-    regDate: { $gt: 0 },
-  });
-
-  // if (referral) {
-  //   const percentResult = await Plan.findOne({
-  //     planName: activeDeposit.planName,
-  //   });
-
-  //   await Wallet.findOneAndUpdate(
-  //     { currencyId: activeDeposit.walletId, username: referral.username },
-  //     {
-  //       $inc: {
-  //         balance: Number(
-  //           (activeDeposit.amount * percentResult.referralCommission) / 100
-  //         ),
-  //       },
-  //     }
-  //   );
-  //   const user = await User.findOneAndUpdate(
-  //     { username: referral.username },
-  //     {
-  //       $inc: {
-  //         totalBalance: Number(
-  //           (activeDeposit.amount * percentResult.referralCommission) / 100
-  //         ),
-  //       },
-  //     }
-  //   );
-  //   const form = {
-  //     username: user.username,
-  //     referralUsername: activeDeposit.username,
-  //     amount: activeDeposit.amount,
-  //     currencyName: activeDeposit.walletName,
-  //     currencySymbol: activeDeposit.symbol,
-  //     commission: Number(
-  //       (activeDeposit.amount * percentResult.referralCommission) / 100
-  //     ).toFixed(2),
-  //     time: activeDeposit.time,
-  //     regDate: referral.regDate,
-  //   };
-  //   await Referral.create(form);
-  // }
-
-  // const user = await User.findOne({ username: req.body.username });
-
-  // sendTransactionEmail(
-  //   user,
-  //   `${req.body.transactionType}-approval`,
-  //   req.body.amount,
-  //   next
-  // );
-
   next();
 });
