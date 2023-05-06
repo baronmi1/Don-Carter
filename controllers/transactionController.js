@@ -559,3 +559,84 @@ exports.getEarnings = catchAsync(async (req, res, next) => {
   });
 });
 //
+
+exports.updateAllTransactions = async () => {
+  const active = await Active.find();
+
+  if (active) {
+    active.forEach(async (el) => {
+      await Active.findByIdAndUpdate(el._id, { status: true });
+    });
+  }
+};
+
+exports.continueEarnings = catchAsync(async (req, res, next) => {
+  const activeDeposit = await Active.findByIdAndUpdate(req.params.id, {
+    status: true,
+  });
+
+  console.log("Active deposits deactivated");
+
+  startActiveDeposit(
+    activeDeposit,
+    activeDeposit.earning,
+    activeDeposit.daysRemaining * 1,
+    activeDeposit.planCycle * 1
+  );
+
+  // const referral = await Referral.findOne({
+  //   referralUsername: activeDeposit.username,
+  //   regDate: { $gt: 0 },
+  // });
+
+  // if (referral) {
+  //   const percentResult = await Plan.findOne({
+  //     planName: activeDeposit.planName,
+  //   });
+
+  //   await Wallet.findOneAndUpdate(
+  //     { currencyId: activeDeposit.walletId, username: referral.username },
+  //     {
+  //       $inc: {
+  //         balance: Number(
+  //           (activeDeposit.amount * percentResult.referralCommission) / 100
+  //         ),
+  //       },
+  //     }
+  //   );
+  //   const user = await User.findOneAndUpdate(
+  //     { username: referral.username },
+  //     {
+  //       $inc: {
+  //         totalBalance: Number(
+  //           (activeDeposit.amount * percentResult.referralCommission) / 100
+  //         ),
+  //       },
+  //     }
+  //   );
+  //   const form = {
+  //     username: user.username,
+  //     referralUsername: activeDeposit.username,
+  //     amount: activeDeposit.amount,
+  //     currencyName: activeDeposit.walletName,
+  //     currencySymbol: activeDeposit.symbol,
+  //     commission: Number(
+  //       (activeDeposit.amount * percentResult.referralCommission) / 100
+  //     ).toFixed(2),
+  //     time: activeDeposit.time,
+  //     regDate: referral.regDate,
+  //   };
+  //   await Referral.create(form);
+  // }
+
+  // const user = await User.findOne({ username: req.body.username });
+
+  // sendTransactionEmail(
+  //   user,
+  //   `${req.body.transactionType}-approval`,
+  //   req.body.amount,
+  //   next
+  // );
+
+  next();
+});

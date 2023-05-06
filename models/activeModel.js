@@ -16,6 +16,10 @@ const activeSchema = new mongoose.Schema({
   walletName: String,
   walletId: String,
   time: Number,
+  status: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const Active = mongoose.model("Active", activeSchema);

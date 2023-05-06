@@ -13,7 +13,7 @@ const router = express.Router();
 router.get("/notifications", notificationController.getNotifications);
 router.get("/get-volumes", transactionController.getTransactionVolume);
 router.get("/active-deposits", transactionController.getActiveDeposits);
-router.post("/check-active", transactionController.checkActive);
+router.post("/continue-earnings/:id", transactionController.continueEarnings);
 router.get("/earnings", transactionController.getEarnings);
 router.get("/deposit-list", transactionController.getDepositList);
 router.patch(
