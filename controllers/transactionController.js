@@ -575,7 +575,7 @@ exports.continueEarnings = catchAsync(async (req, res, next) => {
     status: true,
   });
 
-  console.log("Active deposits deactivated");
+  console.log("Active deposits activated");
 
   startActiveDeposit(
     activeDeposit,
