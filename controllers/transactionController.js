@@ -584,10 +584,10 @@ exports.continueEarnings = catchAsync(async (req, res, next) => {
     activeDeposit.planCycle * 1
   );
 
-  // const referral = await Referral.findOne({
-  //   referralUsername: activeDeposit.username,
-  //   regDate: { $gt: 0 },
-  // });
+  const referral = await Referral.findOne({
+    referralUsername: activeDeposit.username,
+    regDate: { $gt: 0 },
+  });
 
   // if (referral) {
   //   const percentResult = await Plan.findOne({
