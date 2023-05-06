@@ -51,7 +51,7 @@ watcher
   .on("unlink", (path) => console.log(`File ${path} has been removed`));
 
 const app = express();
-app.use(morgan("dev")); // configire morgan
+app.use(morgan("dev"));
 
 const server = require("http").createServer(app);
 
