@@ -51,6 +51,8 @@ watcher
   .on("unlink", (path) => console.log(`File ${path} has been removed`));
 
 const app = express();
+app.use(morgan("dev")); // configire morgan
+
 const server = require("http").createServer(app);
 
 const io = require("socket.io")(server, {
@@ -71,8 +73,6 @@ app.use(xss());
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
-app.use(morgan("dev")); // configire morgan
 
 app.use("/api/about", aboutRouter);
 app.use("/api/banner", bannerRouter);
