@@ -1,20 +1,20 @@
-const {
-  updateAllTransactions,
-} = require("./controllers/transactionController");
+// const {
+//   updateAllTransactions,
+// } = require("./controllers/transactionController");
 
-const beforeBuild = async () => {
-  console.log("Running before build");
+// const beforeBuild = async () => {
+//   console.log("Running before build");
 
-  await updateAllTransactions();
-};
+//   await updateAllTransactions();
+// };
 
-module.exports = {
-  // Other config options
-  plugins: [
-    {
-      apply: (compiler) => {
-        compiler.hooks.beforeRun.tap("Before Build", beforeBuild);
-      },
-    },
-  ],
-};
+// module.exports = {
+//   // Other config options
+//   plugins: [
+//     {
+//       apply: (compiler) => {
+//         compiler.hooks.beforeRun.tap("Before Build", beforeBuild);
+//       },
+//     },
+//   ],
+// };
