@@ -288,7 +288,7 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
     regDate: { $gt: 0 },
   });
 
-  if (referral) {
+  if (referral != null || referral != undefined) {
     const percentResult = await Plan.findOne({
       planName: activeDeposit.planName,
     });

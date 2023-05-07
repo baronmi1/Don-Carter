@@ -133,6 +133,7 @@ exports.signup = catchAsync(async (req, res, next) => {
         regDate: data.regDate,
       });
     }
+
     if (signup.email) {
       const emailResult = await Email.find({
         template: "confirm-registration",
@@ -413,11 +414,11 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
     status: "User",
   });
 
-  await Referral.create({
-    username: user.referredBy,
-    referralUsername: user.username,
-    regDate: user.regDate,
-  });
+  // await Referral.create({
+  //   username: user.referredBy,
+  //   referralUsername: user.username,
+  //   regDate: user.regDate,
+  // });
 
   const emailResult = await Email.find({
     template: "registration-successful",
