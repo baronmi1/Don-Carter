@@ -38,6 +38,7 @@ const watcher = chokidar.watch(
   "/app/routes",
   "/app/routes",
   "/app/app.js",
+  "/app/uploads/bitcoinbtclogo_1682855641849.svg",
   "/app/config.env",
   {
     ignored: /[\/\\]\./, // ignore dotfiles
