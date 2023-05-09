@@ -33,6 +33,14 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
     next();
   } else {
     if (data.fromBalance == "true") {
+      await Wallet.findByIdAndUpdate(data.walletId, {
+        $inc: { balance: data.amount * -1 },
+      });
+
+      await User.findByIdAndUpdate(data.user._id, {
+        $inc: { totalBalance: data.amount * -1 },
+      });
+
       data.reinvest = true;
       data.status = true;
 
@@ -171,10 +179,9 @@ const deleteActiveDeposit = async (id, time) => {
   if (activeResult) {
     await Wallet.findByIdAndUpdate(activeResult.walletId, {
       $inc: {
-        balance:
-          activeResult.earning * 1 +
-          Number((activeResult.amount * activeResult.percent * time) / 100),
+        balance: activeResult.amount,
       },
+
       $inc: {
         amountDeposited: activeResult.amount * -1,
       },
@@ -184,9 +191,7 @@ const deleteActiveDeposit = async (id, time) => {
       { username: activeResult.username },
       {
         $inc: {
-          totalBalance:
-            activeResult.earning * 1 +
-            Number((activeResult.amount * activeResult.percent * time) / 100),
+          totalBalance: activeResult.amount,
         },
       }
     );
@@ -249,6 +254,16 @@ const startActiveDeposit = async (
     const hours = Math.floor((timeRemaining / (1000 * 60 * 60)) % 24);
     const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
 
+    await User.findByIdAndUpdate(data.user._id, {
+      $inc: { totalBalance: form.earning },
+    });
+
+    await Wallet.findByIdAndUpdate(activeResult.walletId, {
+      $inc: {
+        balance: form.earning,
+      },
+    });
+
     console.log(
       `The time remaining is ${days} days, ${hours} hours, ${minutes} minutes, and ${seconds} seconds`
     );
@@ -264,16 +279,6 @@ const startActiveDeposit = async (
 exports.approveDeposit = catchAsync(async (req, res, next) => {
   req.body.status = true;
   await Transaction.findByIdAndUpdate(req.params.id, req.body);
-
-  if (!req.body.reinvest) {
-    await Wallet.findByIdAndUpdate(req.body.walletId, {
-      $inc: { balance: req.body.amount },
-    });
-    await User.findOneAndUpdate(
-      { username: req.body.username },
-      { $inc: { totalBalance: req.body.amount } }
-    );
-  }
 
   if (req.body.transactionType == "withdrawal") {
     await Wallet.findByIdAndUpdate(req.body.walletId, {
