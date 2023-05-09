@@ -10,6 +10,10 @@ const walletSchema = new mongoose.Schema({
   symbol: String,
   pendingWithdrawal: Number,
   pendingDeposit: Number,
+  amountDeposited: {
+    type: Number,
+    default: 0,
+  },
   time: Number,
 });
 

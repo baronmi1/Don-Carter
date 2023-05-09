@@ -34,6 +34,21 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
   } else {
     if (data.fromBalance == "true") {
       data.reinvest = true;
+      data.status = true;
+
+      data.planDuration = data.planDuration * 24 * 60 * 60 * 1000;
+      data.daysRemaining = data.planDuration;
+      data.serverTime = new Date().getTime();
+      const earning = Number((data.amount * data.percent) / 100).toFixed(2);
+      data.earning = 0;
+      const activeDeposit = await Active.create(data);
+
+      startActiveDeposit(
+        activeDeposit,
+        earning,
+        data.planDuration * 1,
+        data.planCycle * 1
+      );
     }
 
     await Transaction.create(data);
@@ -160,6 +175,9 @@ const deleteActiveDeposit = async (id, time) => {
           activeResult.earning * 1 +
           Number((activeResult.amount * activeResult.percent * time) / 100),
       },
+      $inc: {
+        amountDeposited: activeResult.amount * -1,
+      },
     });
 
     await User.findOneAndUpdate(
@@ -264,11 +282,13 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
   } else {
     await Wallet.findByIdAndUpdate(req.body.walletId, {
       $inc: { pendingDeposit: req.body.amount * -1 },
+      $inc: { amountDeposited: req.body.amount * 1 },
     });
   }
   // req.body.planCycle = 60 * 1000;
   // req.body.planDuration = 4 * 60 * 1000;
   // req.body.daysRemaining = req.body.planDuration;
+
   req.body.planDuration = req.body.planDuration * 24 * 60 * 60 * 1000;
   req.body.daysRemaining = req.body.planDuration;
   req.body.serverTime = new Date().getTime();
