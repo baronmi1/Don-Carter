@@ -55,7 +55,8 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
         activeDeposit,
         earning,
         data.planDuration * 1,
-        data.planCycle * 1
+        data.planCycle * 1,
+        data.user
       );
     }
 
@@ -213,7 +214,8 @@ const startActiveDeposit = async (
   activeDeposit,
   earning,
   timeRemaining,
-  interval
+  interval,
+  user
 ) => {
   const seconds = Math.floor((timeRemaining / 1000) % 60);
   const minutes = Math.floor((timeRemaining / (1000 * 60)) % 60);
@@ -254,7 +256,7 @@ const startActiveDeposit = async (
     const hours = Math.floor((timeRemaining / (1000 * 60 * 60)) % 24);
     const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
 
-    await User.findByIdAndUpdate(data.user._id, {
+    await User.findByIdAndUpdate(user._id, {
       $inc: { totalBalance: form.earning },
     });
 
@@ -300,12 +302,14 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
   const earning = Number((req.body.amount * req.body.percent) / 100).toFixed(2);
   req.body.earning = 0;
   const activeDeposit = await Active.create(req.body);
+  const user = await User.findOne({ username: req.body.username });
 
   startActiveDeposit(
     activeDeposit,
     earning,
     req.body.planDuration * 1,
-    req.body.planCycle * 1
+    req.body.planCycle * 1,
+    user
   );
 
   const referral = await Referral.findOne({
@@ -353,8 +357,6 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
     };
     await Referral.create(form);
   }
-
-  const user = await User.findOne({ username: req.body.username });
 
   sendTransactionEmail(
     user,
