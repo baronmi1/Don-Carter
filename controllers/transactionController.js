@@ -261,7 +261,7 @@ const startActiveDeposit = async (
       $inc: { totalBalance: form.earning },
     });
 
-    await Wallet.findByIdAndUpdate(activeResult.walletId, {
+    await Wallet.findByIdAndUpdate(activeDeposit.walletId, {
       $inc: {
         balance: form.earning,
       },
