@@ -56,7 +56,8 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
         earning,
         data.planDuration * 1,
         data.planCycle * 1,
-        data.user
+        data.user,
+        next
       );
     }
 
