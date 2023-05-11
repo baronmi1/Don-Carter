@@ -223,7 +223,8 @@ const startActiveDeposit = async (
 
   // print the result
   console.log(
-    `The next earning will be executed in: ${hours} hours, ${minutes} minutes, ${seconds} seconds`
+    `The next earning will be executed in: ${hours} hours, ${minutes} minutes, ${seconds} seconds`,
+    timeRemaining
   );
 
   const intervalId = setInterval(async () => {
@@ -292,11 +293,10 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
       $inc: { amountDeposited: req.body.amount * 1 },
     });
   }
-  // req.body.planCycle = 60 * 1000;
-  // req.body.planDuration = 4 * 60 * 1000;
-  // req.body.daysRemaining = req.body.planDuration;
+  req.body.planCycle = 60 * 1000;
+  req.body.planDuration = 4 * 60 * 1000;
 
-  req.body.planDuration = req.body.planDuration * 24 * 60 * 60 * 1000;
+  // req.body.planDuration = req.body.planDuration * 24 * 60 * 60 * 1000;
   req.body.daysRemaining = req.body.planDuration;
   req.body.serverTime = new Date().getTime();
   const earning = Number((req.body.amount * req.body.percent) / 100).toFixed(2);
