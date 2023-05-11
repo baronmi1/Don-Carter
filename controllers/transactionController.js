@@ -501,12 +501,15 @@ exports.continueEarnings = catchAsync(async (req, res, next) => {
   });
 
   const user = await User.findOne({ username: activeDeposit.username });
+  const earning = Number(
+    (activeDeposit.amount * activeDeposit.percent) / 100
+  ).toFixed(2);
 
   console.log("Active deposits reactivated");
 
   startActiveDeposit(
     activeDeposit,
-    activeDeposit.earning,
+    earning,
     activeDeposit.daysRemaining * 1,
     activeDeposit.planCycle * 1,
     user,
