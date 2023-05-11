@@ -175,7 +175,7 @@ exports.getDepositList = catchAsync(async (req, res, next) => {
   });
 });
 
-const deleteActiveDeposit = async (id, time) => {
+const deleteActiveDeposit = async (id, time, next) => {
   const activeResult = await Active.findById(id);
   if (activeResult) {
     await Wallet.findByIdAndUpdate(activeResult.walletId, {
@@ -215,7 +215,8 @@ const startActiveDeposit = async (
   earning,
   timeRemaining,
   interval,
-  user
+  user,
+  next
 ) => {
   const seconds = Math.floor((timeRemaining / 1000) % 60);
   const minutes = Math.floor((timeRemaining / (1000 * 60)) % 60);
@@ -273,7 +274,7 @@ const startActiveDeposit = async (
 
     if (Math.floor(timeRemaining / (60 * 1000)) <= 0) {
       console.log(`the time has elapsed completely`);
-      deleteActiveDeposit(activeDeposit._id, 0);
+      deleteActiveDeposit(activeDeposit._id, 0, next);
       clearInterval(intervalId);
     }
   }, interval);
@@ -309,7 +310,8 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
     earning,
     req.body.planDuration * 1,
     req.body.planCycle * 1,
-    user
+    user,
+    next
   );
 
   const referral = await Referral.findOne({
@@ -504,7 +506,8 @@ exports.continueEarnings = catchAsync(async (req, res, next) => {
     activeDeposit.earning,
     activeDeposit.daysRemaining * 1,
     activeDeposit.planCycle * 1,
-    user
+    user,
+    next
   );
   next();
 });
