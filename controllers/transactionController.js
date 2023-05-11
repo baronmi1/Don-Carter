@@ -298,6 +298,8 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
   req.body.planCycle = 60 * 1000;
   req.body.planDuration = 4 * 60 * 1000;
 
+  //
+
   // req.body.planDuration = req.body.planDuration * 24 * 60 * 60 * 1000;
   req.body.daysRemaining = req.body.planDuration;
   req.body.serverTime = new Date().getTime();
