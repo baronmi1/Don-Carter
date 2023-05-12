@@ -283,7 +283,7 @@ const startActiveDeposit = async (
 
 exports.approveDeposit = catchAsync(async (req, res, next) => {
   req.body.status = true;
-  await Transaction.findByIdAndUpdate(req.params.id, req.body);
+  await Transaction.findByIdAndUpdate(req.params.id, { status: true });
 
   if (req.body.transactionType == "withdrawal") {
     await Wallet.findByIdAndUpdate(req.body.walletId, {
@@ -373,7 +373,7 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
 
 exports.approveWithdrawal = catchAsync(async (req, res, next) => {
   req.body.status = true;
-  await Transaction.findByIdAndUpdate(req.params.id, req.body);
+  await Transaction.findByIdAndUpdate(req.params.id, { status: true });
 
   await Wallet.findByIdAndUpdate(req.body.walletId, {
     $inc: { balance: -req.body.amount * 1 },
@@ -397,11 +397,27 @@ exports.approveWithdrawal = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteTransaction = catchAsync(async (req, res, next) => {
-  const transaction = await Transaction.findByIdAndDelete(req.params.id);
-
+  const transaction = await Transaction.findById(req.params.id);
   if (!transaction) {
     return next(new AppError("No transaction found with that ID", 404));
   }
+
+  const wallet = await Wallet.findById(transaction.walletId);
+
+  if (transaction.transactionType == "withdrawal") {
+    await Wallet.findByIdAndUpdate(wallet._id, {
+      $inc: { pendingWithdrawal: data.amount * -1 },
+    });
+  }
+
+  if (transaction.transactionType == "deposit") {
+    await Wallet.findByIdAndUpdate(wallet._id, {
+      $inc: { pendingDeposit: data.amount * -1 },
+    });
+  }
+
+  await Transaction.findByIdAndDelete(req.params.id);
+
   next();
 });
 
