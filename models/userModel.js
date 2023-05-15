@@ -51,25 +51,31 @@ const userSchema = new mongoose.Schema({
       message: "Sorry the passwords do not match",
     },
   },
+
   referredBy: {
     type: String,
     default: "",
   },
+
   hasReferred: {
     type: Boolean,
     default: false,
   },
+
   status: {
     type: String,
     default: "User",
   },
+
   profilePicture: String,
-  identity: String,
-  idPicture: String,
+  documentName: String,
+  documentFile: String,
+
   dob: {
     type: Number,
     default: 0,
   },
+
   referrals: Array,
   regDate: Number,
   passwordChangedAt: Date,

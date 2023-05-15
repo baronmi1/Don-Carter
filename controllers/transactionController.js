@@ -291,8 +291,10 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
     });
   } else {
     await Wallet.findByIdAndUpdate(req.body.walletId, {
-      $inc: { pendingDeposit: req.body.amount * -1 },
-      $inc: { amountDeposited: req.body.amount * 1 },
+      $inc: {
+        pendingDeposit: req.body.amount * -1,
+        amountDeposited: req.body.amount * 1,
+      },
     });
   }
   // req.body.planCycle = 60 * 1000;
@@ -373,15 +375,20 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
 
 exports.approveWithdrawal = catchAsync(async (req, res, next) => {
   req.body.status = true;
-  await Transaction.findByIdAndUpdate(req.params.id, { status: true });
+  const transaction = await Transaction.findByIdAndUpdate(req.params.id, {
+    status: true,
+  });
 
-  await Wallet.findByIdAndUpdate(req.body.walletId, {
-    $inc: { balance: -req.body.amount * 1 },
+  await Wallet.findByIdAndUpdate(transaction.walletId, {
+    $inc: {
+      balance: req.body.amount * -1,
+      pendingWithdrawal: req.body.amount * -1,
+    },
   });
 
   await User.findOneAndUpdate(
     { username: req.body.username },
-    { $inc: { totalBalance: -req.body.amount * 1 } }
+    { $inc: { totalBalance: req.body.amount * -1 } }
   );
 
   const user = await User.findOne({ username: req.body.username });
@@ -406,13 +413,13 @@ exports.deleteTransaction = catchAsync(async (req, res, next) => {
 
   if (transaction.transactionType == "withdrawal") {
     await Wallet.findByIdAndUpdate(wallet._id, {
-      $inc: { pendingWithdrawal: data.amount * -1 },
+      $inc: { pendingWithdrawal: transaction.amount * -1 },
     });
   }
 
   if (transaction.transactionType == "deposit") {
     await Wallet.findByIdAndUpdate(wallet._id, {
-      $inc: { pendingDeposit: data.amount * -1 },
+      $inc: { pendingDeposit: transaction.amount * -1 },
     });
   }
 

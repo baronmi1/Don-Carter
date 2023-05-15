@@ -9,6 +9,7 @@ const currencySchema = new mongoose.Schema({
   address: String,
   description: String,
   time: Number,
+  paymentMethod: String,
   status: {
     type: Boolean,
     default: false,
