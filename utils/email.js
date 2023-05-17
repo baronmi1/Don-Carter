@@ -6,35 +6,20 @@ const Transport = require("nodemailer-sendinblue-transport");
 dotenv.config({ path: "../config.env" });
 
 module.exports = class Email {
-  constructor(
-    companyName,
-    domainName,
-    from,
-    user,
-    name,
-    title,
-    banner,
-    content,
-    headerColor,
-    footerColor,
-    mainColor,
-    greeting,
-    warning,
-    resetURL
-  ) {
-    this.companyName = companyName;
-    this.domainName = domainName;
-    this.from = from;
+  constructor(company, user, email, bannerURL, content, resetURL) {
+    this.companyName = company.companyName;
+    this.domainName = company.domainName;
+    this.from = company.systemEmail;
     this.user = user;
-    this.name = name;
-    this.title = title;
-    this.banner = banner;
+    this.template = email.template;
+    this.title = email.title;
+    this.banner = bannerURL;
     this.content = content;
-    this.headerColor = headerColor;
-    this.footerColor = footerColor;
-    this.mainColor = mainColor;
-    this.greeting = greeting;
-    this.warning = warning;
+    this.headerColor = email.headerColor;
+    this.footerColor = email.footerColor;
+    this.mainColor = email.mainColor;
+    this.greeting = email.greeting;
+    this.warning = email.warning;
     this.resetURL = resetURL;
   }
 
@@ -83,7 +68,7 @@ module.exports = class Email {
           companyName: this.companyName,
         },
       })
-      .then((res) => {
+      .then(() => {
         console.log("sent successfully");
       })
       .catch((err) => {
@@ -92,7 +77,7 @@ module.exports = class Email {
   }
 
   sendEmail() {
-    this.send(`${this.name}`, `${this.title}`);
+    this.send(`${this.template}`, `${this.title}`);
   }
 
   sendForgottenPassword() {

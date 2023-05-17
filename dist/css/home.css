@@ -235,28 +235,28 @@ th {
 }
 
 .w-icon-slider-right:before {
-  content: "î˜€";
+  content: "";
 }
 
 .w-icon-slider-left:before {
-  content: "î˜";
+  content: "";
 }
 
 .w-icon-nav-menu:before {
-  content: "î˜";
+  content: "";
 }
 
 .w-icon-arrow-down:before,
 .w-icon-dropdown-toggle:before {
-  content: "î˜ƒ";
+  content: "";
 }
 
 .w-icon-file-upload-remove:before {
-  content: "î¤€";
+  content: "";
 }
 
 .w-icon-file-upload-icon:before {
-  content: "î¤ƒ";
+  content: "";
 }
 
 * {
@@ -2289,7 +2289,6 @@ textarea.w-select {
 
 .custom-container.footer {
   flex-wrap: wrap;
-  background: transparent;
   padding-top: 100px;
   display: flex;
 }
@@ -2835,6 +2834,7 @@ textarea.w-select {
 .transaction-table.top-payment {
   z-index: 13;
   width: 250px;
+  background-image: linear-gradient(to right, #292c35, #181320);
   flex-direction: column;
   display: flex;
   position: absolute;
@@ -2847,6 +2847,7 @@ textarea.w-select {
 .transaction-table.payment-methods {
   z-index: 5;
   max-width: 400px;
+  background-image: linear-gradient(to right, #292c35, #181320);
   position: absolute;
   top: auto;
   bottom: -18%;
@@ -2872,6 +2873,7 @@ textarea.w-select {
 .transaction-table.person {
   z-index: 5;
   max-width: 250px;
+  background-image: linear-gradient(to right, #292c35, #181320);
   position: absolute;
   top: 8%;
   bottom: auto;
@@ -4392,7 +4394,6 @@ textarea.w-select {
 
 .sign-label.bottom {
   margin-top: 0;
-  width: 100%;
 }
 
 .sign-label.bottom.term {
@@ -4543,7 +4544,6 @@ textarea.w-select {
 
 .select-display {
   margin-right: auto;
-  background: transparent;
 }
 
 .country-list {
@@ -4595,7 +4595,7 @@ textarea.w-select {
 .passport-bg {
   width: 80px;
   height: 80px;
-  background-image: url("../images/avatar.svg");
+  background-image: url("https://uploads-ssl.webflow.com/6458b19446eea345a074cdaf/64594d4cef5dff0b42a48986_testimonial-3.jpg");
   background-position: 50%;
   background-size: cover;
   border-radius: 50%;
@@ -4807,6 +4807,16 @@ textarea.w-select {
 }
 
 @media screen and (max-width: 991px) {
+  .page.index,
+  .page.about,
+  .page.contacts,
+  .page.plans,
+  .page.blog,
+  .page.full-blog,
+  .page.programs {
+    display: block;
+  }
+
   .navigation {
     z-index: 20;
     background-color: rgba(0, 0, 0, 0);
@@ -4823,8 +4833,8 @@ textarea.w-select {
   }
 
   .custom-container.subscription {
-    padding-top: 40px;
-    padding-bottom: 40px;
+    padding-top: 140px;
+    padding-bottom: 140px;
   }
 
   .custom-container.about-flex {
@@ -4837,8 +4847,7 @@ textarea.w-select {
   }
 
   .custom-container.staff {
-    padding-left: 30px;
-    padding-right: 30px;
+    padding: 100px 30px;
   }
 
   .nav-link {
@@ -4885,7 +4894,7 @@ textarea.w-select {
     z-index: 10;
     width: 100%;
     align-items: center;
-    padding-top: 45px;
+    padding-top: 100px;
     position: relative;
   }
 
@@ -4939,12 +4948,12 @@ textarea.w-select {
   }
 
   .profiting {
-    padding-top: 100px;
-    padding-bottom: 100px;
+    padding-top: 140px;
+    padding-bottom: 140px;
   }
 
   .profiting-header {
-    font-size: 40px;
+    font-size: 35px;
     font-weight: 600;
   }
 
@@ -4953,9 +4962,23 @@ textarea.w-select {
     font-size: 16px;
   }
 
+  .custome-text.pricing {
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+
+  .custom-btn {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .each-profiting-right {
+    margin-bottom: 50px;
+  }
+
   .transactions {
-    padding-top: 60px;
-    padding-bottom: 100px;
+    padding-top: 140px;
+    padding-bottom: 140px;
   }
 
   .transactions.location {
@@ -4981,12 +5004,22 @@ textarea.w-select {
     width: 60%;
   }
 
+  .transaction-table.price {
+    background-image: linear-gradient(#292c35, #181320);
+  }
+
   .transaction-table.service {
     width: 32%;
   }
 
+  .transaction-table.service.active {
+    background-color: #16122b;
+    background-image: none;
+  }
+
   .testimonial-flex {
-    padding-bottom: 60px;
+    padding-top: 140px;
+    padding-bottom: 140px;
   }
 
   .each-slide {
@@ -4994,13 +5027,17 @@ textarea.w-select {
   }
 
   .partners {
-    padding-top: 70px;
-    padding-bottom: 20px;
+    padding-top: 100px;
+    padding-bottom: 100px;
+  }
+
+  .partners.reduce {
+    padding-bottom: 40px;
   }
 
   .each-partner {
     width: 32%;
-    margin-bottom: 20px;
+    margin-bottom: 60px;
   }
 
   .artificial-intel {
@@ -5024,6 +5061,18 @@ textarea.w-select {
     top: -118px;
   }
 
+  .landing-flex {
+    min-height: 120vh;
+    padding-top: 100px;
+    padding-bottom: 100px;
+  }
+
+  .landing-flex.intouch,
+  .landing-flex.pricing,
+  .landing-flex.blog {
+    min-height: 100vh;
+  }
+
   .landing-title {
     font-size: 50px;
     font-weight: 600;
@@ -5034,6 +5083,12 @@ textarea.w-select {
     font-size: 40px;
     font-weight: 500;
     line-height: 45px;
+  }
+
+  .landing-text {
+    color: #fff;
+    margin-bottom: 20px;
+    font-weight: 400;
   }
 
   .about-office-holder.event {
@@ -5051,13 +5106,15 @@ textarea.w-select {
     margin-left: 0;
   }
 
-  .about-highlight.spec {
+  .about-highlight.spec,
+  .about-highlight.right {
     text-align: left;
   }
 
   .about-left {
     width: 100%;
     margin-bottom: 0;
+    padding-bottom: 20px;
     padding-right: 0;
   }
 
@@ -5073,6 +5130,11 @@ textarea.w-select {
     margin-top: 20px;
   }
 
+  .stats {
+    margin-top: 60px;
+    margin-bottom: 60px;
+  }
+
   .about-mission.office {
     width: 47%;
     margin-bottom: 40px;
@@ -5080,6 +5142,7 @@ textarea.w-select {
 
   .distribution {
     width: 100%;
+    margin-top: 60px;
   }
 
   .each-distribution {
@@ -5089,6 +5152,7 @@ textarea.w-select {
   .distribute-flex {
     width: 100%;
     justify-content: space-between;
+    margin-top: 40px;
   }
 
   .distributed-map {
@@ -5121,6 +5185,31 @@ textarea.w-select {
     padding-right: 20px;
   }
 
+  .each-currency {
+    margin-right: 10px;
+  }
+
+  .pricing-name.dark,
+  .pricing-name.active {
+    color: #00040f;
+  }
+
+  .each-pricing {
+    background-color: #292c35;
+    background-image: none;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .each-pricing.active {
+    background-image: none;
+  }
+
+  .max-number.active {
+    color: #00040f;
+  }
+
+  .each-price-range,
   .blog-body.full {
     padding-left: 10px;
     padding-right: 10px;
@@ -5128,15 +5217,27 @@ textarea.w-select {
 
   .blog-body.full.login {
     margin-top: -102px;
+    padding-left: 20px;
+    padding-right: 20px;
     top: 0;
   }
 
+  .each-main-blog {
+    margin-bottom: 100px;
+  }
+
   .main-title {
-    font-size: 40px;
+    font-size: 35px;
+    line-height: 45px;
+  }
+
+  .main-content {
+    font-weight: 300;
   }
 
   .event-flex {
     flex-wrap: wrap-reverse;
+    margin-bottom: 100px;
   }
 
   .document-holder {
@@ -5145,9 +5246,32 @@ textarea.w-select {
 }
 
 @media screen and (max-width: 767px) {
+  .page.index,
+  .page.about,
+  .page.contacts,
+  .page.plans,
+  .page.blog,
+  .page.full-blog,
+  .page.programs {
+    display: block;
+  }
+
   .custom-container {
     padding-left: 20px;
     padding-right: 20px;
+  }
+
+  .custom-container.subscription {
+    padding-top: 100px;
+    padding-bottom: 100px;
+  }
+
+  .custom-container.footer {
+    padding-top: 60px;
+  }
+
+  .custom-container.distribute {
+    margin-bottom: 60px;
   }
 
   .custom-container.staff {
@@ -5161,6 +5285,11 @@ textarea.w-select {
 
   .home-hero-flex {
     min-height: 100vh;
+  }
+
+  .home-hero-left {
+    min-height: 90vh;
+    padding-top: 0;
   }
 
   .gradient {
@@ -5205,7 +5334,7 @@ textarea.w-select {
   }
 
   .big-ball {
-    top: -7%;
+    top: -36%;
     right: 44%;
   }
 
@@ -5215,6 +5344,8 @@ textarea.w-select {
 
   .stats-flex {
     margin-top: -189px;
+    padding-top: 80px;
+    padding-bottom: 80px;
   }
 
   .each-stats-number {
@@ -5225,12 +5356,13 @@ textarea.w-select {
   .profiting {
     flex-wrap: wrap;
     padding-top: 60px;
-    padding-bottom: 102px;
+    padding-bottom: 220px;
   }
 
   .profiting-left {
     width: 100%;
-    margin-bottom: 0;
+    margin-bottom: 40px;
+    padding-right: 0;
   }
 
   .profiting-header {
@@ -5273,12 +5405,16 @@ textarea.w-select {
   }
 
   .profiting-right {
-    width: 100%;
+    width: 450px;
     max-width: 100%;
+    margin-top: 100px;
+    margin-left: auto;
+    margin-right: auto;
     top: 97px;
   }
 
   .each-profiting-right {
+    margin-bottom: 40px;
     padding: 10px 0 10px 10px;
   }
 
@@ -5296,27 +5432,36 @@ textarea.w-select {
 
   .transaction-left {
     width: 100%;
+    margin-bottom: 20px;
   }
 
   .transaction-table.top-payment {
     padding-top: 10px;
     padding-bottom: 10px;
-    top: -38%;
+    top: -45%;
     left: 49%;
     right: 47%;
   }
 
   .transaction-table.payment-methods {
     padding: 10px;
+    bottom: -19%;
+    right: 5%;
   }
 
   .transaction-table.scan {
-    left: 7%;
+    top: -38%;
+    left: 6%;
     right: auto;
+  }
+
+  .transaction-table.person {
+    top: 10%;
   }
 
   .transaction-table.staff {
     width: 48%;
+    margin-bottom: 40px;
     padding: 10px;
   }
 
@@ -5352,13 +5497,18 @@ textarea.w-select {
     top: 68px;
   }
 
+  .transaction-right.pad {
+    margin-bottom: 60px;
+    top: 100px;
+  }
+
   .transaction-payment {
     bottom: -9%;
     right: 15%;
   }
 
   .testimonial-flex {
-    margin-top: 170px;
+    margin-top: 60px;
     padding-top: 10px;
   }
 
@@ -5449,7 +5599,13 @@ textarea.w-select {
     background-position: 50% 100%;
     background-size: 100% 100%;
     margin-top: 216px;
-    top: 8px;
+    top: 73px;
+  }
+
+  .landing-flex {
+    min-height: 120vh;
+    padding-top: 140px;
+    padding-bottom: 140px;
   }
 
   .landing-flex.pricing {
@@ -5476,7 +5632,7 @@ textarea.w-select {
   }
 
   .office-bg {
-    min-height: 40vh;
+    min-height: 50vh;
   }
 
   .each-online-stat {
@@ -5529,6 +5685,19 @@ textarea.w-select {
 
   .currency-holder {
     width: 100%;
+    margin-top: 60px;
+  }
+
+  .currency-flex {
+    justify-content: center;
+  }
+
+  .each-currency {
+    margin-left: 10px;
+  }
+
+  .pricing-name.blog {
+    width: 100%;
   }
 
   .each-pricing {
@@ -5546,6 +5715,10 @@ textarea.w-select {
     padding-bottom: 15px;
   }
 
+  .blog-body {
+    flex-wrap: wrap-reverse;
+  }
+
   .blog-body.full {
     padding-top: 20px;
     padding-bottom: 20px;
@@ -5555,6 +5728,16 @@ textarea.w-select {
     width: 100%;
   }
 
+  .each-aside-post {
+    width: 50%;
+    padding-right: 10px;
+  }
+
+  .main-blog-body {
+    width: 100%;
+    padding-left: 0;
+  }
+
   .main-blog-body.main {
     width: 100%;
     margin-bottom: 40px;
@@ -5562,7 +5745,12 @@ textarea.w-select {
   }
 
   .main-blog-bg {
-    min-height: 40vh;
+    min-height: 50vh;
+  }
+
+  .aside-sticky {
+    flex-wrap: wrap;
+    display: flex;
   }
 
   .main-title {
@@ -5590,6 +5778,10 @@ textarea.w-select {
 
   .box-line {
     min-width: 20px;
+  }
+
+  .select-icon {
+    height: 20px;
   }
 
   .document {
@@ -5624,6 +5816,12 @@ textarea.w-select {
   }
 
   .page.index,
+  .page.about,
+  .page.contacts,
+  .page.plans,
+  .page.blog,
+  .page.full-blog,
+  .page.programs,
   .page.reset {
     display: block;
   }
@@ -5634,6 +5832,7 @@ textarea.w-select {
   }
 
   .custom-container.subscription {
+    padding-top: 40px;
     padding-bottom: 0;
   }
 
@@ -5643,6 +5842,7 @@ textarea.w-select {
 
   .custom-container.distribute {
     padding-top: 20px;
+    padding-bottom: 10px;
   }
 
   .custom-container.staff {
@@ -5659,9 +5859,14 @@ textarea.w-select {
     min-height: 0;
   }
 
+  .home-hero-left {
+    min-height: 110vh;
+  }
+
   .gradient {
     width: 100%;
     border-radius: 5px;
+    margin-bottom: 20px;
     font-size: 18px;
   }
 
@@ -5670,6 +5875,7 @@ textarea.w-select {
   }
 
   .hero-title {
+    margin-top: 40px;
     margin-bottom: 40px;
     font-size: 35px;
     font-weight: 500;
@@ -5677,7 +5883,7 @@ textarea.w-select {
   }
 
   .hero-text {
-    background-color: rgba(0, 4, 15, 0.27);
+    background-color: rgba(0, 4, 15, 0.42);
     border-radius: 5px;
     margin-top: 5px;
     padding: 20px 10px;
@@ -5723,7 +5929,13 @@ textarea.w-select {
 
   .each-stats {
     width: 100%;
+    margin-bottom: 40px;
     padding-top: 10px;
+  }
+
+  .each-stats.middle {
+    border-left-width: 0;
+    border-right-width: 0;
   }
 
   .each-stats-number {
@@ -5769,6 +5981,7 @@ textarea.w-select {
   }
 
   .custome-text.time {
+    justify-content: space-between;
     display: flex;
   }
 
@@ -5780,6 +5993,7 @@ textarea.w-select {
 
   .custom-btn.sub {
     min-width: 100px;
+    padding-left: 5px;
     padding-right: 5px;
     font-size: 16px;
   }
@@ -5809,8 +6023,12 @@ textarea.w-select {
   }
 
   .transactions {
-    padding-top: 20px;
+    padding-top: 60px;
     padding-bottom: 10px;
+  }
+
+  .transactions.location {
+    padding-top: 10px;
   }
 
   .transaction-table {
@@ -5845,6 +6063,7 @@ textarea.w-select {
   .transaction-table.staff {
     width: 100%;
     margin-top: 20px;
+    margin-bottom: 20px;
   }
 
   .transaction-table.days {
@@ -5869,6 +6088,7 @@ textarea.w-select {
   .transaction-table.service {
     width: 100%;
     margin-top: 10px;
+    margin-bottom: 20px;
   }
 
   .transaction-icon {
@@ -5885,7 +6105,7 @@ textarea.w-select {
   }
 
   .transaction-right.pad {
-    margin-bottom: 80px;
+    margin-bottom: 100px;
     top: 92px;
   }
 
@@ -5908,6 +6128,10 @@ textarea.w-select {
     height: 40px;
   }
 
+  .testimonial-flex {
+    margin-top: 170px;
+  }
+
   .each-tesimony {
     padding-left: 10px;
     padding-right: 10px;
@@ -5922,6 +6146,10 @@ textarea.w-select {
   .partners {
     padding-top: 20px;
     padding-bottom: 20px;
+  }
+
+  .partners.reduce {
+    padding-bottom: 0;
   }
 
   .each-partner {
@@ -5952,6 +6180,10 @@ textarea.w-select {
     line-height: 40px;
   }
 
+  .subscribe-flex {
+    margin-bottom: 40px;
+  }
+
   .subscribe-input.pad {
     justify-content: space-between;
     align-items: center;
@@ -5971,8 +6203,9 @@ textarea.w-select {
   }
 
   .footer-link-list {
-    width: 100%;
-    margin-bottom: 10px;
+    width: 50%;
+    margin-bottom: 40px;
+    padding-right: 10px;
   }
 
   .each-link-list {
@@ -5990,8 +6223,19 @@ textarea.w-select {
     margin-top: 529px;
   }
 
+  .landing-flex.full.login {
+    min-height: 80vh;
+    padding-top: 60px;
+    padding-bottom: 60px;
+  }
+
   .landing-flex.full.person {
     min-height: 50vh;
+  }
+
+  .landing-flex.event {
+    padding-top: 100px;
+    padding-bottom: 100px;
   }
 
   .landing-title {
@@ -6003,8 +6247,13 @@ textarea.w-select {
     font-size: 30px;
   }
 
+  .text-span-2 {
+    margin-top: 0;
+  }
+
   .landing-text.left {
     text-align: center;
+    margin-top: 30px;
   }
 
   .about-office-holder {
@@ -6018,6 +6267,11 @@ textarea.w-select {
 
   .office-bg {
     min-height: 30vh;
+  }
+
+  .about-left {
+    margin-top: 20px;
+    padding-bottom: 20px;
   }
 
   .each-online-stat {
@@ -6034,7 +6288,7 @@ textarea.w-select {
 
   .about-mission {
     width: 100%;
-    margin-bottom: 20px;
+    margin-bottom: 40px;
   }
 
   .about-mission.office {
@@ -6051,7 +6305,7 @@ textarea.w-select {
   .distribute-flex {
     flex-wrap: wrap;
     justify-content: space-between;
-    margin-top: 20px;
+    margin-top: 40px;
   }
 
   .staff-img {
@@ -6119,10 +6373,16 @@ textarea.w-select {
 
   .each-pricing {
     width: 100%;
+    margin-bottom: 40px;
   }
 
   .blog-body {
     flex-flow: wrap-reverse;
+  }
+
+  .blog-body.full.login {
+    padding-left: 10px;
+    padding-right: 10px;
   }
 
   .blog-body.full.person {
@@ -6131,6 +6391,11 @@ textarea.w-select {
 
   .aside-blog {
     width: 100%;
+  }
+
+  .each-aside-post {
+    width: 100%;
+    padding-right: 0;
   }
 
   .main-blog-body {
@@ -6148,11 +6413,22 @@ textarea.w-select {
     padding-right: 10px;
   }
 
+  .main-blog-title {
+    font-weight: 400;
+    text-decoration: none;
+  }
+
+  .blog-content {
+    color: #b9babd;
+  }
+
   .main-title {
-    line-height: 40px;
+    font-size: 25px;
+    line-height: 35px;
   }
 
   .main-title.login {
+    margin-top: 20px;
     font-size: 35px;
   }
 
@@ -6160,13 +6436,25 @@ textarea.w-select {
     margin-bottom: 20px;
   }
 
+  .main-title.quest {
+    text-align: left;
+    margin-bottom: 20px;
+    font-size: 25px;
+    line-height: 35px;
+  }
+
   .main-content {
     font-size: 14px;
   }
 
+  .event-flex {
+    margin-bottom: 60px;
+  }
+
   .sign-label.bottom.term {
     letter-spacing: 1px;
-    line-height: 25px;
+    font-size: 13px;
+    line-height: 20px;
   }
 
   .sign-label.answer {
@@ -6191,6 +6479,7 @@ textarea.w-select {
 
   .space-text {
     width: 120px;
+    color: #fff;
     display: block;
   }
 
@@ -6205,20 +6494,8 @@ textarea.w-select {
   }
 
   .question {
+    font-size: 18px;
     font-weight: 500;
     line-height: 25px;
-  }
-}
-
-.processing-icon {
-  animation: spin 1s infinite linear;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
   }
 }

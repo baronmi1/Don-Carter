@@ -4,13 +4,26 @@ const walletSchema = new mongoose.Schema({
   name: String,
   currencyId: String,
   username: String,
-  balance: Number,
   userId: String,
   walletAddress: String,
   symbol: String,
-  pendingWithdrawal: Number,
-  pendingDeposit: Number,
-  amountDeposited: {
+  balance: {
+    type: Number,
+    default: 0,
+  },
+  pendingWithdrawal: {
+    type: Number,
+    default: 0,
+  },
+  totalWithdrawal: {
+    type: Number,
+    default: 0,
+  },
+  pendingDeposit: {
+    type: Number,
+    default: 0,
+  },
+  totalDeposit: {
     type: Number,
     default: 0,
   },

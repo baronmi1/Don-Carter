@@ -6,14 +6,23 @@ const currencySchema = new mongoose.Schema({
     type: String,
     unique: [true, "This currency already exist"],
   },
-  address: String,
-  description: String,
-  time: Number,
-  paymentMethod: String,
+  totalWithdrawal: {
+    type: Number,
+    default: 0,
+  },
+  totalDeposit: {
+    type: Number,
+    default: 0,
+  },
   status: {
     type: Boolean,
     default: false,
   },
+
+  address: String,
+  description: String,
+  time: Number,
+  paymentMethod: String,
 });
 
 const Currency = mongoose.model("Currency", currencySchema);

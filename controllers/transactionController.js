@@ -2,6 +2,7 @@ const Transaction = require("../models/transactionModel");
 const Active = require("../models/activeModel");
 const Earning = require("../models/earningModel");
 const Wallet = require("../models/walletModel");
+const Currency = require("../models/currencyModel");
 const Plan = require("../models/planModel");
 const Referral = require("../models/referralModel");
 const Company = require("../models/companyModel");
@@ -15,6 +16,8 @@ const catchAsync = require("../utils/catchAsync");
 
 exports.createTransaction = catchAsync(async (req, res, next) => {
   const data = req.body;
+  const duration = data.planDuration;
+
   if (data.autoTransact) {
     const plan = await Plan.findOne({ planName: data.planName });
     data.planCycle = plan.planCycle;
@@ -27,14 +30,28 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
     });
     data.walletId = wallet.walletId;
     data.symbol = wallet.symbol;
-
+    data.status = true;
     await Transaction.create(data);
 
     next();
   } else {
     if (data.fromBalance == "true") {
+      const wallet = await Wallet.findById(data.walletId);
+      if (data.amount > wallet.balance) {
+        return next(
+          new AppError(
+            `You have insufficient fund in this ${wallet.name} wallet`,
+            404
+          )
+        );
+      }
+
       await Wallet.findByIdAndUpdate(data.walletId, {
-        $inc: { balance: data.amount * -1 },
+        $inc: {
+          balance: data.amount * -1,
+          totalDeposit: data.amount * 1,
+          pendingDeposit: data.amount * -1,
+        },
       });
 
       await User.findByIdAndUpdate(data.user._id, {
@@ -51,6 +68,12 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
       data.earning = 0;
       const activeDeposit = await Active.create(data);
 
+      await Currency.findByIdAndUpdate(wallet.currencyId, {
+        $inc: {
+          totalDeposit: req.body.amount * 1,
+        },
+      });
+
       startActiveDeposit(
         activeDeposit,
         earning,
@@ -59,27 +82,49 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
         data.user,
         next
       );
-    }
-
-    await Transaction.create(data);
-
-    if (data.transactionType == "withdrawal") {
-      await Wallet.findByIdAndUpdate(data.walletId, {
-        $inc: { pendingWithdrawal: data.amount },
-      });
     } else {
-      await Wallet.findByIdAndUpdate(data.walletId, {
-        $inc: { pendingDeposit: data.amount },
-      });
-    }
+      const wallet = await Wallet.findById(data.walletId);
 
-    sendTransactionEmail(data.user, data.transactionType, data.amount, next);
-    notificationController.createNotification(
-      data.user.username,
-      data.transactionType,
-      data.date,
-      data.dateCreated
-    );
+      if (data.amount > wallet.balance) {
+        return next(
+          new AppError(
+            `You have insufficient fund in this ${wallet.name} wallet`,
+            404
+          )
+        );
+      }
+
+      data.planDuration = duration;
+      data.daysRemaining = duration;
+      await Transaction.create(data);
+
+      if (data.transactionType == "withdrawal") {
+        await Wallet.findByIdAndUpdate(data.walletId, {
+          $inc: {
+            pendingWithdrawal: data.amount,
+            balance: data.amount * -1,
+            totalWithdrawal: data.amount * 1,
+          },
+        });
+
+        await User.findOneAndUpdate(
+          { username: data.user.username },
+          { $inc: { totalBalance: req.body.amount * -1 } }
+        );
+      } else {
+        await Wallet.findByIdAndUpdate(data.walletId, {
+          $inc: { pendingDeposit: data.amount },
+        });
+      }
+
+      sendTransactionEmail(data.user, data.transactionType, data.amount, next);
+      notificationController.createNotification(
+        data.user.username,
+        data.transactionType,
+        data.date,
+        data.dateCreated
+      );
+    }
 
     next();
   }
@@ -219,14 +264,13 @@ const startActiveDeposit = async (
   user,
   next
 ) => {
-  const seconds = Math.floor((timeRemaining / 1000) % 60);
-  const minutes = Math.floor((timeRemaining / (1000 * 60)) % 60);
-  const hours = Math.floor((timeRemaining / (1000 * 60 * 60)) % 24);
+  let seconds = Math.floor((timeRemaining / 1000) % 60);
+  let minutes = Math.floor((timeRemaining / (1000 * 60)) % 60);
+  let hours = Math.floor((timeRemaining / (1000 * 60 * 60)) % 24);
 
   // print the result
   console.log(
-    `The next earning will be executed in: ${hours} hours, ${minutes} minutes, ${seconds} seconds`,
-    timeRemaining
+    `The next earning will be executed in: ${hours} hours, ${minutes} minutes, ${seconds} seconds`
   );
 
   const intervalId = setInterval(async () => {
@@ -237,6 +281,7 @@ const startActiveDeposit = async (
       {
         $inc: { earning: earning * 1, daysRemaining: -interval * 1 },
         time: newTime,
+        serverTime: new Date().getTime(),
       }
     );
 
@@ -281,24 +326,76 @@ const startActiveDeposit = async (
   }, interval);
 };
 
+const finishInterruptedActiveDeposit = async (
+  activeDeposit,
+  earning,
+  timeRemaining,
+  interval,
+  user,
+  next
+) => {
+  const planCycle = activeDeposit.planCycle;
+
+  setTimeout(async () => {
+    const newTime = (activeDeposit.time += planCycle);
+
+    await Active.updateOne(
+      { _id: activeDeposit._id },
+      {
+        $inc: { earning: earning * 1, daysRemaining: -planCycle * 1 },
+        time: newTime,
+        serverTime: new Date().getTime(),
+      }
+    );
+
+    const form = {
+      symbol: activeDeposit.symbol,
+      depositId: activeDeposit._id,
+      username: activeDeposit.username,
+      amount: activeDeposit.amount,
+      earning: earning,
+      referredBy: activeDeposit.referralUsername,
+      walletName: activeDeposit.walletName,
+      walletId: activeDeposit.walletId,
+      time: activeDeposit.time,
+    };
+
+    timeRemaining -= planCycle;
+    await Earning.create(form);
+
+    await User.findByIdAndUpdate(user._id, {
+      $inc: { totalBalance: form.earning },
+    });
+
+    await Wallet.findByIdAndUpdate(activeDeposit.walletId, {
+      $inc: {
+        balance: form.earning,
+      },
+    });
+
+    const newActiveDeposit = await Active.findById(activeDeposit._id);
+
+    startActiveDeposit(
+      newActiveDeposit,
+      earning,
+      timeRemaining,
+      newActiveDeposit.planCycle * 1,
+      user,
+      next
+    );
+  }, interval);
+};
+
 exports.approveDeposit = catchAsync(async (req, res, next) => {
   req.body.status = true;
   await Transaction.findByIdAndUpdate(req.params.id, { status: true });
 
-  if (req.body.transactionType == "withdrawal") {
-    await Wallet.findByIdAndUpdate(req.body.walletId, {
-      $inc: { pendingWithdrawal: req.body.amount * -1 },
-    });
-  } else {
-    await Wallet.findByIdAndUpdate(req.body.walletId, {
-      $inc: {
-        pendingDeposit: req.body.amount * -1,
-        amountDeposited: req.body.amount * 1,
-      },
-    });
-  }
-  // req.body.planCycle = 60 * 1000;
-  // req.body.planDuration = 4 * 60 * 1000;
+  await Wallet.findByIdAndUpdate(req.body.walletId, {
+    $inc: {
+      pendingDeposit: req.body.amount * -1,
+      totalDeposit: req.body.amount * 1,
+    },
+  });
 
   req.body.planDuration = req.body.planDuration * 24 * 60 * 60 * 1000;
   req.body.daysRemaining = req.body.planDuration;
@@ -316,6 +413,14 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
     user,
     next
   );
+
+  const wallet = await Wallet.findById(activeDeposit.walletId);
+
+  await Currency.findByIdAndUpdate(wallet.currencyId, {
+    $inc: {
+      totalDeposit: req.body.amount * 1,
+    },
+  });
 
   const referral = await Referral.findOne({
     referralUsername: activeDeposit.username,
@@ -379,17 +484,19 @@ exports.approveWithdrawal = catchAsync(async (req, res, next) => {
     status: true,
   });
 
-  await Wallet.findByIdAndUpdate(transaction.walletId, {
+  const wallet = await Wallet.findById(transaction.walletId);
+
+  await Wallet.findByIdAndUpdate(wallet._id, {
     $inc: {
-      balance: req.body.amount * -1,
-      pendingWithdrawal: req.body.amount * -1,
+      pendingWithdrawal: transaction.amount * -1,
     },
   });
 
-  await User.findOneAndUpdate(
-    { username: req.body.username },
-    { $inc: { totalBalance: req.body.amount * -1 } }
-  );
+  await Currency.findByIdAndUpdate(wallet.currencyId, {
+    $inc: {
+      totalWithdrawal: req.body.amount * 1,
+    },
+  });
 
   const user = await User.findOne({ username: req.body.username });
 
@@ -413,13 +520,24 @@ exports.deleteTransaction = catchAsync(async (req, res, next) => {
 
   if (transaction.transactionType == "withdrawal") {
     await Wallet.findByIdAndUpdate(wallet._id, {
-      $inc: { pendingWithdrawal: transaction.amount * -1 },
+      $inc: {
+        pendingWithdrawal: transaction.amount * -1,
+        balance: transaction.amount * 1,
+        totalWithdrawal: transaction.amount * -1,
+      },
     });
+
+    await User.findOneAndUpdate(
+      { username: transaction.username },
+      { $inc: { totalBalance: transaction.amount * 1 } }
+    );
   }
 
   if (transaction.transactionType == "deposit") {
     await Wallet.findByIdAndUpdate(wallet._id, {
-      $inc: { pendingDeposit: transaction.amount * -1 },
+      $inc: {
+        pendingDeposit: transaction.amount * -1,
+      },
     });
   }
 
@@ -512,30 +630,32 @@ exports.getEarnings = catchAsync(async (req, res, next) => {
 });
 
 exports.continueEarnings = catchAsync(async (req, res, next) => {
-  // const timeRemaining = new Date().getTime();
-  // const seconds = Math.floor((timeRemaining / 1000) % 60);
-  // const minutes = Math.floor((timeRemaining / (1000 * 60)) % 60);
-  // const hours = Math.floor((timeRemaining / (1000 * 60 * 60)) % 24);
-
   const activeDeposit = await Active.findByIdAndUpdate(req.params.id, {
     status: true,
   });
+  const timeRemaining =
+    activeDeposit.planCycle - (new Date().getTime() - activeDeposit.serverTime);
+
+  const seconds = Math.floor((timeRemaining / 1000) % 60);
+  const minutes = Math.floor((timeRemaining / (1000 * 60)) % 60);
+  const hours = Math.floor((timeRemaining / (1000 * 60 * 60)) % 24);
 
   const user = await User.findOne({ username: activeDeposit.username });
   const earning = Number(
     (activeDeposit.amount * activeDeposit.percent) / 100
   ).toFixed(2);
 
-  console.log("Active deposits reactivated");
+  console.log(
+    `Active deposit is reactivated and the time remaining is ${hours} hours, ${minutes} minutes and ${seconds} seconds.`
+  );
 
-  startActiveDeposit(
+  finishInterruptedActiveDeposit(
     activeDeposit,
     earning,
     activeDeposit.daysRemaining * 1,
-    activeDeposit.planCycle * 1,
+    timeRemaining,
     user,
     next
   );
   next();
 });
-//

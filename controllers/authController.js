@@ -73,6 +73,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     }
 
     const user = await User.findOne({ username: data.username });
+
     if (user) {
       return next(
         new AppError(
@@ -186,46 +187,44 @@ exports.signup = catchAsync(async (req, res, next) => {
       }
 
       if (signup.email) {
-        const emailResult = await Email.find({
+        const email = await Email.findOne({
           template: "confirm-registration",
         });
-        const email = emailResult[0];
-        const companyResult = await Company.find();
-        const company = companyResult[0];
+        const company = await Company.findOne();
 
         const content = email.content
           .replace("{{company-name}}", company.companyName)
           .replace("{{fullName}}", `${user.firstName} ${user.lastName}`);
-        const from = company.systemEmail;
-        const domainName = company.companyDomain;
 
-        try {
-          const resetURL = `${domainName}/confirm-registration?token=${user._id}`;
-          const banner = `${domainName}/uploads/${email.banner}`;
-          new SendEmail(
-            company.companyName,
-            company.companyDomain,
-            from,
-            user,
-            email.template,
-            email.title,
-            banner,
-            content,
-            email.headerColor,
-            email.footerColor,
-            email.mainColor,
-            email.greeting,
-            email.warning,
-            resetURL
-          ).sendEmail();
-        } catch (err) {
-          return next(
-            new AppError(
-              `There was an error sending the email. Try again later!, ${err}`,
-              500
-            )
-          );
-        }
+        const companyInfo = {
+          email: company.systemEmail,
+          username: company.companyName,
+        };
+
+        const resetURL = `${company.companyDomain}/confirm-registration?token=${user._id}`;
+        const banner = `${company.companyDomain}/uploads/${email.banner}`;
+
+        const users = [companyInfo, user];
+
+        users.forEach((user) => {
+          try {
+            new SendEmail(
+              company,
+              user,
+              email,
+              banner,
+              content,
+              resetURL
+            ).sendEmail();
+          } catch (err) {
+            return next(
+              new AppError(
+                `There was an error sending the email. Try again later!, ${err}`,
+                500
+              )
+            );
+          }
+        });
 
         createSendToken(
           user,
