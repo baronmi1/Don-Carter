@@ -43,11 +43,24 @@ exports.updateCurrency = catchAsync(async (req, res, next) => {
     filesToDelete.push(oldPlan.planBanner);
   }
 
-  await Currency.findByIdAndUpdate(req.params.id, allowedFields, {
-    new: true,
-    runValidators: true,
-    useFindAndModify: false,
-  });
+  const currency = await Currency.findByIdAndUpdate(
+    req.params.id,
+    allowedFields,
+    {
+      new: true,
+      runValidators: true,
+      useFindAndModify: false,
+    }
+  );
+
+  await Wallet.updateMany(
+    { currencyId: currency._id },
+    {
+      paymentMethod: currency.paymentMethod,
+      symbol: currency.symbol,
+      name: currency.name,
+    }
+  );
 
   req.fileNames = filesToDelete;
 

@@ -123,6 +123,21 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
     username: user.username,
   });
 
+  await Wallet.deleteMany(
+    { username: user.username },
+    {
+      $set: {
+        balance: 0,
+        totalDeposit: 0,
+        pendingDeposit: 0,
+        totalWithdrawal: 0,
+        pendingWithdrawal: 0,
+      },
+    }
+  );
+  await Active.deleteMany({ username: user.username });
+  await Earning.deleteMany({ username: user.username });
+
   next();
 });
 

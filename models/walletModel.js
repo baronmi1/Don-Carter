@@ -6,6 +6,7 @@ const walletSchema = new mongoose.Schema({
   username: String,
   userId: String,
   walletAddress: String,
+  paymentMethod: String,
   symbol: String,
   balance: {
     type: Number,

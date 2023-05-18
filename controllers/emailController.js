@@ -6,7 +6,7 @@ const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
 
 exports.createEmail = catchAsync(async (req, res, next) => {
-  const { doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8, doc9, doc10 } =
+  const { doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8, doc9, doc10, doc11 } =
     req.body;
 
   await Email.create([
@@ -20,6 +20,7 @@ exports.createEmail = catchAsync(async (req, res, next) => {
     doc8,
     doc9,
     doc10,
+    doc11,
   ]);
 
   next();

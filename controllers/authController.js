@@ -198,7 +198,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 
         const companyInfo = {
           email: company.systemEmail,
-          username: company.companyName,
+          username: user.username,
         };
 
         const resetURL = `${company.companyDomain}/confirm-registration?token=${user._id}`;
@@ -485,46 +485,44 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
   //   regDate: user.regDate,
   // });
 
-  const emailResult = await Email.find({
+  const email = await Email.findOne({
     template: "registration-successful",
   });
-  const email = emailResult[0];
-  const companyResult = await Company.find();
-  const company = companyResult[0];
+  const company = await Company.findOne();
 
   const content = email.content
     .replace("{{company-name}}", company.companyName)
     .replace("{{fullName}}", `${user.fullName}`);
-  const from = company.systemEmail;
-  const domainName = company.companyDomain;
+  const companyInfo = {
+    email: company.systemEmail,
+    username: user.username,
+  };
 
-  try {
-    const resetURL = `${domainName}/confirm-registration?token=${user._id}`;
-    const banner = `${domainName}/uploads/${email.banner}`;
-    new SendEmail(
-      company.companyName,
-      company.companyDomain,
-      from,
-      user,
-      email.template,
-      email.title,
-      banner,
-      content,
-      email.headerColor,
-      email.footerColor,
-      email.mainColor,
-      email.greeting,
-      email.warning,
-      resetURL
-    ).sendEmail();
-  } catch (err) {
-    return next(
-      new AppError(
-        `There was an error sending the email. Try again later!, ${err}`,
-        500
-      )
-    );
-  }
+  const resetURL = `${company.companyDomain}`;
+  const banner = `${company.companyDomain}/uploads/${email.banner}`;
+
+  const users = [companyInfo, user];
+
+  users.forEach((user) => {
+    try {
+      new SendEmail(
+        company,
+        user,
+        email,
+        banner,
+        content,
+        resetURL
+      ).sendEmail();
+    } catch (err) {
+      return next(
+        new AppError(
+          `There was an error sending the email. Try again later!, ${err}`,
+          500
+        )
+      );
+    }
+  });
+
   createSendToken(user, 200, res);
 });
 

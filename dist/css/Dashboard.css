@@ -3884,6 +3884,11 @@ textarea.w-select {
     left: -500px;
   }
 
+  .side-dash-board.show {
+    left: 0px;
+    transition: all 0.3s;
+  }
+
   .main-dash-board {
     padding-left: 10px;
     padding-right: 10px;
@@ -3903,6 +3908,10 @@ textarea.w-select {
     margin-bottom: 20px;
     margin-right: 0;
     display: flex;
+  }
+
+  .circle-bg {
+    width: 100%;
   }
 
   .icon-profile-holder {

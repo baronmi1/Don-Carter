@@ -12,6 +12,7 @@ module.exports = class Email {
     this.from = company.systemEmail;
     this.user = user;
     this.template = email.template;
+    this.companyPhone = company.media[2]?.text;
     this.title = email.title;
     this.banner = bannerURL;
     this.content = content;
@@ -59,11 +60,13 @@ module.exports = class Email {
           headerColor: this.headerColor,
           footerColor: this.footerColor,
           mainColor: this.mainColor,
+          companyPhone: this.companyPhone,
           greeting: this.greeting,
           warning: this.warning,
           name: this.user.username,
           resetURL: this.resetURL,
           from: this.from,
+          title: this.title,
           domainName: this.domainName,
           companyName: this.companyName,
         },

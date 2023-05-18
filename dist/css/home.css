@@ -311,7 +311,7 @@ html.w-mod-touch * {
   display: none;
 }
 
-.w-button {
+/* .w-button {
   color: #fff;
   line-height: inherit;
   cursor: pointer;
@@ -321,7 +321,7 @@ html.w-mod-touch * {
   padding: 9px 15px;
   text-decoration: none;
   display: inline-block;
-}
+} */
 
 input.w-button {
   -webkit-appearance: button;
@@ -1998,7 +1998,7 @@ textarea.w-select {
 }
 
 .w-nav-link.w--current {
-  color: #0082f3;
+  color: #00f6ff;
 }
 
 .w-nav-menu {
@@ -4544,6 +4544,7 @@ textarea.w-select {
 
 .select-display {
   margin-right: auto;
+  background: transparent;
 }
 
 .country-list {
@@ -6497,5 +6498,18 @@ textarea.w-select {
     font-size: 18px;
     font-weight: 500;
     line-height: 25px;
+  }
+}
+
+.processing-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
   }
 }
