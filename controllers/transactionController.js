@@ -2,6 +2,7 @@ const Transaction = require("../models/transactionModel");
 const Active = require("../models/activeModel");
 const Earning = require("../models/earningModel");
 const Wallet = require("../models/walletModel");
+const Payment = require("../models/paymentModel");
 const Currency = require("../models/currencyModel");
 const Plan = require("../models/planModel");
 const Referral = require("../models/referralModel");
@@ -658,4 +659,31 @@ exports.continueEarnings = catchAsync(async (req, res, next) => {
     next
   );
   next();
+});
+
+exports.createPayment = catchAsync(async (req, res, next) => {
+  // Handle the IPN callback here
+  const { ipn_mode, ipn_type, ipn_id, status, custom } = req.body;
+
+  // Process the payment status and update your application's data accordingly
+  if (status === "100") {
+    // Payment completed successfully
+    console.log(`Payment ID ${ipn_id} completed for order ${custom}`);
+    // Update your application's data or trigger further actions
+  } else {
+    // Payment failed or other status
+    console.log(`Payment ID ${ipn_id} failed or has a different status`);
+  }
+
+  res.status(200).json({
+    status: "success",
+  });
+});
+
+exports.storePayment = catchAsync(async (req, res, next) => {
+  await Payment.create(req.body);
+
+  res.status(200).json({
+    status: "success",
+  });
 });
