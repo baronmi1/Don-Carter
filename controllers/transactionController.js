@@ -2,7 +2,6 @@ const Transaction = require("../models/transactionModel");
 const Active = require("../models/activeModel");
 const Earning = require("../models/earningModel");
 const Wallet = require("../models/walletModel");
-const Payment = require("../models/paymentModel");
 const Currency = require("../models/currencyModel");
 const Plan = require("../models/planModel");
 const Referral = require("../models/referralModel");
