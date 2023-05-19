@@ -16,6 +16,7 @@ const transactionSchema = new mongoose.Schema({
   walletId: String,
   serverTime: Number,
   time: Number,
+  userID: String,
   reinvest: Boolean,
   status: {
     type: Boolean,

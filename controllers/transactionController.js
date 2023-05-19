@@ -20,19 +20,56 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
   const duration = data.planDuration;
 
   if (data.autoTransact) {
-    const plan = await Plan.findOne({ planName: data.planName });
-    data.planCycle = plan.planCycle;
-    data.planDuration = plan.planDuration;
-    data.percent = plan.planPercentage;
+    if (data.amount > data.wallet.balance) {
+      return next(
+        new AppError(
+          `You have insufficient fund in this ${data.wallet.name} wallet`,
+          404
+        )
+      );
+    }
 
-    const wallet = await Wallet.findOne({
-      name: data.walletName,
-      username: data.username,
+    await Wallet.findByIdAndUpdate(data.walletId, {
+      $inc: {
+        balance: data.amount * -1,
+        totalDeposit: data.amount * 1,
+      },
     });
-    data.walletId = wallet.walletId;
-    data.symbol = wallet.symbol;
+
+    await User.findByIdAndUpdate(data.user._id, {
+      $inc: { totalBalance: data.amount * -1 },
+    });
+
     data.status = true;
     await Transaction.create(data);
+    data.planDuration = data.planDuration * 24 * 60 * 60 * 1000;
+    data.daysRemaining = data.planDuration * 1;
+    data.serverTime = new Date().getTime();
+    const earning = Number((data.amount * data.percent) / 100).toFixed(2);
+    data.earning = 0;
+    const activeDeposit = await Active.create(data);
+
+    await Currency.findByIdAndUpdate(data.wallet.currencyId, {
+      $inc: {
+        totalDeposit: req.body.amount * 1,
+      },
+    });
+
+    startActiveDeposit(
+      activeDeposit,
+      earning,
+      data.planDuration * 1,
+      data.planCycle * 1,
+      data.user,
+      next
+    );
+
+    sendTransactionEmail(
+      data.user,
+      `${req.body.transactionType}-approval`,
+      req.body.amount,
+      next
+    );
 
     next();
   } else {
@@ -61,6 +98,7 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
 
       data.reinvest = true;
       data.status = true;
+      await Transaction.create(data);
 
       data.planDuration = data.planDuration * 24 * 60 * 60 * 1000;
       data.daysRemaining = data.planDuration;
@@ -86,20 +124,20 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
     } else {
       const wallet = await Wallet.findById(data.walletId);
 
-      if (data.amount > wallet.balance) {
-        return next(
-          new AppError(
-            `You have insufficient fund in this ${wallet.name} wallet`,
-            404
-          )
-        );
-      }
-
       data.planDuration = duration;
       data.daysRemaining = duration;
-      await Transaction.create(data);
-
       if (data.transactionType == "withdrawal") {
+        if (data.amount > wallet.balance) {
+          return next(
+            new AppError(
+              `You have insufficient fund in this ${wallet.name} wallet`,
+              404
+            )
+          );
+        }
+
+        await Transaction.create(data);
+
         await Wallet.findByIdAndUpdate(data.walletId, {
           $inc: {
             pendingWithdrawal: data.amount,
@@ -113,6 +151,8 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
           { $inc: { totalBalance: req.body.amount * -1 } }
         );
       } else {
+        await Transaction.create(data);
+
         await Wallet.findByIdAndUpdate(data.walletId, {
           $inc: { pendingDeposit: data.amount },
         });
@@ -389,39 +429,8 @@ const finishInterruptedActiveDeposit = async (
 
 exports.approveDeposit = catchAsync(async (req, res, next) => {
   req.body.status = true;
-  await Transaction.findByIdAndUpdate(req.params.id, { status: true });
 
-  await Wallet.findByIdAndUpdate(req.body.walletId, {
-    $inc: {
-      pendingDeposit: req.body.amount * -1,
-      totalDeposit: req.body.amount * 1,
-    },
-  });
-
-  req.body.planDuration = req.body.planDuration * 24 * 60 * 60 * 1000;
-  req.body.daysRemaining = req.body.planDuration;
-  req.body.serverTime = new Date().getTime();
-  const earning = Number((req.body.amount * req.body.percent) / 100).toFixed(2);
-  req.body.earning = 0;
-  const activeDeposit = await Active.create(req.body);
-  const user = await User.findOne({ username: req.body.username });
-
-  startActiveDeposit(
-    activeDeposit,
-    earning,
-    req.body.planDuration * 1,
-    req.body.planCycle * 1,
-    user,
-    next
-  );
-
-  const wallet = await Wallet.findById(activeDeposit.walletId);
-
-  await Currency.findByIdAndUpdate(wallet.currencyId, {
-    $inc: {
-      totalDeposit: req.body.amount * 1,
-    },
-  });
+  startRunningDeposit(req.body, req.params.id, "edit", next);
 
   const referral = await Referral.findOne({
     referralUsername: activeDeposit.username,
@@ -662,16 +671,18 @@ exports.continueEarnings = catchAsync(async (req, res, next) => {
 });
 
 exports.createPayment = catchAsync(async (req, res, next) => {
-  // Handle the IPN callback here
   const { ipn_mode, ipn_type, ipn_id, status, custom } = req.body;
 
   // Process the payment status and update your application's data accordingly
   if (status === "100") {
-    // Payment completed successfully
-    console.log(`Payment ID ${ipn_id} completed for order ${custom}`);
-    // Update your application's data or trigger further actions
+    const transaction = await Transaction.findOne({ userID: custom });
+    if (!transaction) {
+      return next(new AppError("No record for this transaction", 404));
+    }
+
+    transaction.status = true;
+    startRunningDeposit(transaction, transaction._id, "edit", next);
   } else {
-    // Payment failed or other status
     console.log(`Payment ID ${ipn_id} failed or has a different status`);
   }
 
@@ -680,10 +691,50 @@ exports.createPayment = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.storePayment = catchAsync(async (req, res, next) => {
-  await Payment.create(req.body);
+const startRunningDeposit = async (data, id, type, next) => {
+  const wallet = await Wallet.findById(data.walletId);
+  const user = User.findOne({ username: data.username });
 
-  res.status(200).json({
-    status: "success",
+  await Wallet.findByIdAndUpdate(data.walletId, {
+    $inc: {
+      pendingDeposit: data.amount * -1,
+      totalDeposit: data.amount * 1,
+    },
   });
-});
+
+  data.status = true;
+  if (type == "create") {
+    await Transaction.create(data);
+  } else {
+    await Transaction.findByIdAndUpdate(id, { status: data.status });
+  }
+
+  data.planDuration = data.planDuration * 24 * 60 * 60 * 1000;
+  data.daysRemaining = data.planDuration * 1;
+  data.serverTime = new Date().getTime();
+  const earning = Number((data.amount * data.percent) / 100).toFixed(2);
+  data.earning = 0;
+  const activeDeposit = await Active.create(data);
+
+  await Currency.findByIdAndUpdate(wallet.currencyId, {
+    $inc: {
+      totalDeposit: req.body.amount * 1,
+    },
+  });
+
+  startActiveDeposit(
+    activeDeposit,
+    earning,
+    data.planDuration * 1,
+    data.planCycle * 1,
+    user,
+    next
+  );
+
+  sendTransactionEmail(
+    data.user,
+    `${req.body.transactionType}-approval`,
+    req.body.amount,
+    next
+  );
+};
