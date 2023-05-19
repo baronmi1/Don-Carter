@@ -158,12 +158,12 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
       }
 
       sendTransactionEmail(data.user, data.transactionType, data.amount, next);
-      notificationController.createNotification(
-        data.user.username,
-        data.transactionType,
-        data.date,
-        data.dateCreated
-      );
+      // notificationController.createNotification(
+      //   data.user.username,
+      //   data.transactionType,
+      //   data.date,
+      //   data.dateCreated
+      // );
     }
 
     next();
@@ -556,21 +556,16 @@ exports.deleteTransaction = catchAsync(async (req, res, next) => {
 });
 
 const sendTransactionEmail = async (user, type, amount, next) => {
-  const companyResult = await Company.find();
-  const company = companyResult[0];
-  const domainName = company.companyDomain;
-  const companyName = company.companyName;
+  const company = await Company.findOne();
   const resetURL = "";
 
   const email = await Email.findOne({ template: type });
+  email.template = "transaction";
+  const banner = `${company.companyDomain}/uploads/${email.banner}`;
   const from = `${company.systemEmail}`;
   const content = email.content
     .replace("{{amount}}", amount)
     .replace("{{company-name}}", company.companyName);
-  const warning = email.warning.replace(
-    "{{company-name}}",
-    company.companyName
-  );
 
   const form = {
     email: from,
@@ -580,21 +575,12 @@ const sendTransactionEmail = async (user, type, amount, next) => {
 
   receivers.forEach((el) => {
     try {
-      const banner = `${domainName}/uploads/${email.banner}`;
       new SendEmail(
-        companyName,
-        domainName,
-        from,
-        el,
-        "transaction",
-        email.title,
+        company,
+        user,
+        email,
         banner,
         content,
-        email.headerColor,
-        email.footerColor,
-        email.mainColor,
-        email.greeting,
-        warning,
         resetURL
       ).sendEmail();
     } catch (err) {
@@ -672,7 +658,6 @@ exports.continueEarnings = catchAsync(async (req, res, next) => {
 exports.createPayment = catchAsync(async (req, res, next) => {
   const { ipn_mode, ipn_type, ipn_id, status, custom } = req.body;
 
-  // Process the payment status and update your application's data accordingly
   if (status === "100") {
     const transaction = await Transaction.findOne({ userID: custom });
     if (!transaction) {
@@ -680,7 +665,7 @@ exports.createPayment = catchAsync(async (req, res, next) => {
     }
 
     transaction.status = true;
-    startRunningDeposit(transaction, transaction._id, "edit", next);
+    startRunningDeposit(transaction, transaction._id, next);
   } else {
     console.log(`Payment ID ${ipn_id} failed or has a different status`);
   }
@@ -690,9 +675,9 @@ exports.createPayment = catchAsync(async (req, res, next) => {
   });
 });
 
-const startRunningDeposit = async (data, id, type, next) => {
+const startRunningDeposit = async (data, id, next) => {
   const wallet = await Wallet.findById(data.walletId);
-  const user = User.findOne({ username: data.username });
+  const user = await User.findOne({ username: data.username });
 
   await Wallet.findByIdAndUpdate(data.walletId, {
     $inc: {
@@ -701,23 +686,36 @@ const startRunningDeposit = async (data, id, type, next) => {
     },
   });
 
-  data.status = true;
-  if (type == "create") {
+  if (id == "") {
     await Transaction.create(data);
   } else {
-    await Transaction.findByIdAndUpdate(id, { status: data.status });
+    await Transaction.findByIdAndUpdate(id, { status: true });
   }
 
-  data.planDuration = data.planDuration * 24 * 60 * 60 * 1000;
-  data.daysRemaining = data.planDuration * 1;
-  data.serverTime = new Date().getTime();
   const earning = Number((data.amount * data.percent) / 100).toFixed(2);
-  data.earning = 0;
-  const activeDeposit = await Active.create(data);
+
+  const form = {
+    planDuration: data.planDuration * 24 * 60 * 60 * 1000,
+    daysRemaining: data.planDuration * 24 * 60 * 60 * 1000,
+    serverTime: new Date().getTime(),
+    earning: 0,
+    time: new Date().getTime(),
+    amount: data.amount,
+    username: data.username,
+    symbol: data.symbol,
+    planName: data.planName,
+    planPeriod: data.planPeriod,
+    percent: data.percent,
+    walletName: data.walletName,
+    walletId: data.walletId,
+    planCycle: data.planCycle,
+  };
+
+  const activeDeposit = await Active.create(form);
 
   await Currency.findByIdAndUpdate(wallet.currencyId, {
     $inc: {
-      totalDeposit: req.body.amount * 1,
+      totalDeposit: data.amount * 1,
     },
   });
 
@@ -731,9 +729,9 @@ const startRunningDeposit = async (data, id, type, next) => {
   );
 
   sendTransactionEmail(
-    data.user,
-    `${req.body.transactionType}-approval`,
-    req.body.amount,
+    user,
+    `${data.transactionType}-approval`,
+    data.amount,
     next
   );
 };
