@@ -18,7 +18,12 @@ const currencySchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-
+  pendingWithdrawal: {
+    type: Number,
+  },
+  pendingDeposit: {
+    type: Number,
+  },
   address: String,
   description: String,
   time: Number,

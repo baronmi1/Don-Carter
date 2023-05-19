@@ -141,7 +141,6 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
           $inc: {
             pendingWithdrawal: data.amount,
             balance: data.amount * -1,
-            totalWithdrawal: data.amount * 1,
           },
         });
 
@@ -149,6 +148,12 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
           { username: data.user.username },
           { $inc: { totalBalance: req.body.amount * -1 } }
         );
+
+        await Currency.findByIdAndUpdate(data.walletId, {
+          $inc: {
+            pendingWithdrawal: data.amount,
+          },
+        });
       } else {
         await Transaction.create(data);
 
@@ -431,59 +436,6 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
 
   startRunningDeposit(req.body, req.params.id, "edit", next);
 
-  const referral = await Referral.findOne({
-    referralUsername: activeDeposit.username,
-    regDate: { $gt: 0 },
-  });
-
-  if (referral != null || referral != undefined) {
-    const percentResult = await Plan.findOne({
-      planName: activeDeposit.planName,
-    });
-
-    await Wallet.findOneAndUpdate(
-      { currencyId: activeDeposit.walletId, username: referral.username },
-      {
-        $inc: {
-          balance: Number(
-            (activeDeposit.amount * percentResult.referralCommission) / 100
-          ),
-        },
-      }
-    );
-
-    const user = await User.findOneAndUpdate(
-      { username: referral.username },
-      {
-        $inc: {
-          totalBalance: Number(
-            (activeDeposit.amount * percentResult.referralCommission) / 100
-          ),
-        },
-      }
-    );
-    const form = {
-      username: user.username,
-      referralUsername: activeDeposit.username,
-      amount: activeDeposit.amount,
-      currencyName: activeDeposit.walletName,
-      currencySymbol: activeDeposit.symbol,
-      commission: Number(
-        (activeDeposit.amount * percentResult.referralCommission) / 100
-      ).toFixed(2),
-      time: activeDeposit.time,
-      regDate: referral.regDate,
-    };
-    await Referral.create(form);
-  }
-
-  sendTransactionEmail(
-    user,
-    `${req.body.transactionType}-approval`,
-    req.body.amount,
-    next
-  );
-
   next();
 });
 
@@ -498,12 +450,14 @@ exports.approveWithdrawal = catchAsync(async (req, res, next) => {
   await Wallet.findByIdAndUpdate(wallet._id, {
     $inc: {
       pendingWithdrawal: transaction.amount * -1,
+      totalWithdrawal: req.body.amount * 1,
     },
   });
 
   await Currency.findByIdAndUpdate(wallet.currencyId, {
     $inc: {
       totalWithdrawal: req.body.amount * 1,
+      pendingWithdrawal: transaction.amount * -1,
     },
   });
 
@@ -575,14 +529,7 @@ const sendTransactionEmail = async (user, type, amount, next) => {
 
   receivers.forEach((el) => {
     try {
-      new SendEmail(
-        company,
-        user,
-        email,
-        banner,
-        content,
-        resetURL
-      ).sendEmail();
+      new SendEmail(company, el, email, banner, content, resetURL).sendEmail();
     } catch (err) {
       return next(
         new AppError(
@@ -734,4 +681,50 @@ const startRunningDeposit = async (data, id, next) => {
     data.amount,
     next
   );
+
+  const referral = await Referral.findOne({
+    referralUsername: activeDeposit.username,
+    regDate: { $gt: 0 },
+  });
+
+  if (referral != null || referral != undefined) {
+    const percentResult = await Plan.findOne({
+      planName: activeDeposit.planName,
+    });
+
+    await Wallet.findOneAndUpdate(
+      { currencyId: activeDeposit.walletId, username: referral.username },
+      {
+        $inc: {
+          balance: Number(
+            (activeDeposit.amount * percentResult.referralCommission) / 100
+          ),
+        },
+      }
+    );
+
+    const user = await User.findOneAndUpdate(
+      { username: referral.username },
+      {
+        $inc: {
+          totalBalance: Number(
+            (activeDeposit.amount * percentResult.referralCommission) / 100
+          ),
+        },
+      }
+    );
+    const form = {
+      username: user.username,
+      referralUsername: activeDeposit.username,
+      amount: activeDeposit.amount,
+      currencyName: activeDeposit.walletName,
+      currencySymbol: activeDeposit.symbol,
+      commission: Number(
+        (activeDeposit.amount * percentResult.referralCommission) / 100
+      ).toFixed(2),
+      time: activeDeposit.time,
+      regDate: referral.regDate,
+    };
+    await Referral.create(form);
+  }
 };

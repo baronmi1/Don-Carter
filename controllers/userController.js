@@ -2,6 +2,7 @@ const { token } = require("morgan");
 const User = require("../models/userModel");
 const Related = require("../models/relatedModel");
 const Wallet = require("../models/walletModel");
+const Currency = require("../models/currencyModel");
 const Transaction = require("../models/transactionModel");
 const Active = require("../models/activeModel");
 const Earning = require("../models/earningModel");
@@ -146,6 +147,14 @@ exports.resetUsers = catchAsync(async (req, res, next) => {
   await Wallet.updateMany({
     $set: {
       balance: 0,
+      totalDeposit: 0,
+      pendingDeposit: 0,
+      totalWithdrawal: 0,
+      pendingWithdrawal: 0,
+    },
+  });
+  await Currency.updateMany({
+    $set: {
       totalDeposit: 0,
       pendingDeposit: 0,
       totalWithdrawal: 0,
