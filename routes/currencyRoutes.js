@@ -14,7 +14,7 @@ router.route("/toggle-status/:id").patch(
 router
   .route("/")
   .post(
-    upload.upload.single("symbol"),
+    upload.upload.single("image"),
     currencyController.createCurrency,
     currencyController.getCurrencies
   )

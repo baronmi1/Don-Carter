@@ -78,7 +78,13 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-
+  countryOfResidence: {
+    type: Object,
+    default: {
+      country: "",
+      flag: "",
+    },
+  },
   profilePicture: String,
   documentName: String,
   documentFile: String,

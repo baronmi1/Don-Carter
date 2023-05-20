@@ -18,6 +18,8 @@ const transactionSchema = new mongoose.Schema({
   time: Number,
   userID: String,
   reinvest: Boolean,
+  image: String,
+  online: Boolean,
   status: {
     type: Boolean,
     default: false,

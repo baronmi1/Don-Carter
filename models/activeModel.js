@@ -16,6 +16,8 @@ const activeSchema = new mongoose.Schema({
   walletName: String,
   walletId: String,
   time: Number,
+  image: String,
+  online: Boolean,
   status: {
     type: Boolean,
     default: false,

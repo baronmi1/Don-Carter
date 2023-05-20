@@ -2,6 +2,7 @@ const Transaction = require("../models/transactionModel");
 const Active = require("../models/activeModel");
 const Earning = require("../models/earningModel");
 const Wallet = require("../models/walletModel");
+const Notification = require("../models/notificationModel");
 const Currency = require("../models/currencyModel");
 const Plan = require("../models/planModel");
 const Referral = require("../models/referralModel");
@@ -97,6 +98,7 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
 
       data.reinvest = true;
       data.status = true;
+      data.online = wallet.online;
       await Transaction.create(data);
 
       data.planDuration = data.planDuration * 24 * 60 * 60 * 1000;
@@ -155,6 +157,7 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
           },
         });
       } else {
+        data.online = wallet.online;
         await Transaction.create(data);
 
         await Wallet.findByIdAndUpdate(data.walletId, {
@@ -539,6 +542,15 @@ const sendTransactionEmail = async (user, type, amount, next) => {
       );
     }
   });
+
+  const notification = {
+    username: user.username,
+    time: new Date().getTime(),
+    message: content,
+    subject: email.title,
+  };
+
+  await Notification.create(notification);
 };
 
 exports.sendTransactionNotification = (io, socket) => {
@@ -651,6 +663,8 @@ const startRunningDeposit = async (data, id, next) => {
     username: data.username,
     symbol: data.symbol,
     planName: data.planName,
+    online: data.online,
+    image: data.image,
     planPeriod: data.planPeriod,
     percent: data.percent,
     walletName: data.walletName,

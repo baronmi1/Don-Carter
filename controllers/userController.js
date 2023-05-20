@@ -1,8 +1,10 @@
 const { token } = require("morgan");
+const upload = require("../config/multer");
 const User = require("../models/userModel");
 const Related = require("../models/relatedModel");
 const Wallet = require("../models/walletModel");
 const Currency = require("../models/currencyModel");
+const Comment = require("../models/commentModel");
 const Transaction = require("../models/transactionModel");
 const Active = require("../models/activeModel");
 const Earning = require("../models/earningModel");
@@ -205,3 +207,41 @@ exports.fetchUsers = (io, socket) => {
     io.emit("fetchedUsers", users);
   });
 };
+
+exports.editUserPictue = catchAsync(async (req, res, next) => {
+  let files = [];
+  const oldUser = await User.findById(req.params.id);
+
+  req.body.password = undefined;
+  req.body.cPassword = undefined;
+
+  await User.findByIdAndUpdate(
+    req.params.id,
+    { profilePicture: req.file.filename },
+    {
+      new: true,
+      // runValidators: true,
+    }
+  );
+  files.push(oldUser.profilePicture);
+  req.fileNames = files;
+
+  next();
+});
+
+exports.editComment = catchAsync(async (req, res, next) => {
+  await Comment.findOneAndUpdate({ username: req.params.username }, req.body);
+
+  next();
+});
+
+exports.getComment = catchAsync(async (req, res, next) => {
+  const comment = await Comment.findOneAndUpdate({
+    username: req.query.username,
+  });
+
+  res.status(200).json({
+    status: "success",
+    data: comment,
+  });
+});

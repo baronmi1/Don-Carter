@@ -5,6 +5,8 @@ const User = require("../models/userModel");
 const Signup = require("../models/signupModel");
 const Referral = require("../models/referralModel");
 const Company = require("../models/companyModel");
+const Comment = require("../models/commentModel");
+const Notification = require("../models/notificationModel");
 const Related = require("../models/relatedModel");
 const Email = require("../models/emailModel");
 const AppError = require("../utils/appError");
@@ -479,6 +481,8 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
     status: "User",
   });
 
+  await Comment.create({ username: user.username });
+
   // await Referral.create({
   //   username: user.referredBy,
   //   referralUsername: user.username,
@@ -522,6 +526,15 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
       );
     }
   });
+
+  const form = {
+    username: user.username,
+    time: new Date().getTime(),
+    message: content,
+    subject: email.title,
+  };
+
+  await Notification.create(form);
 
   createSendToken(user, 200, res);
 });

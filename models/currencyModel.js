@@ -24,8 +24,12 @@ const currencySchema = new mongoose.Schema({
   pendingDeposit: {
     type: Number,
   },
+  online: {
+    type: Boolean,
+    default: false,
+  },
+  image: String,
   address: String,
-  description: String,
   time: Number,
   paymentMethod: String,
 });

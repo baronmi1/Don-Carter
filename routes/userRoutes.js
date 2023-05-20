@@ -15,6 +15,21 @@ router.route("/related/:username").get(userController.getRelatedData);
 router.route("/reset").get(userController.resetUsers);
 
 router.route("/reset/:id").patch(userController.resetUser);
+router.patch(
+  "/edit-picture/:id",
+  upload.upload.single("profilePicture"),
+  userController.editUserPictue,
+  deleteFile,
+  authController.getAUser
+);
+
+router
+  .patch(
+    "/comment/:username",
+    userController.editComment,
+    userController.getComment
+  )
+  .get("/comment", userController.getComment);
 
 router
   .route("/update-password")

@@ -66,6 +66,8 @@ exports.getWallet = catchAsync(async (req, res, next) => {
           currencyId: currencyResult[i]._id,
           name: currencyResult[i].name,
           symbol: currencyResult[i].symbol,
+          online: currencyResult[i].online,
+          image: currencyResult[i].image,
           balance: 0,
           walletAddress: "",
         });

@@ -8,6 +8,7 @@ const walletSchema = new mongoose.Schema({
   walletAddress: String,
   paymentMethod: String,
   symbol: String,
+  image: String,
   balance: {
     type: Number,
     default: 0,
@@ -27,6 +28,9 @@ const walletSchema = new mongoose.Schema({
   totalDeposit: {
     type: Number,
     default: 0,
+  },
+  online: {
+    type: Boolean,
   },
   time: Number,
 });

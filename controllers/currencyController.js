@@ -7,7 +7,7 @@ const catchAsync = require("../utils/catchAsync");
 exports.createCurrency = catchAsync(async (req, res, next) => {
   const allowedFields = req.body;
   if (req.file) {
-    allowedFields.symbol = req.file.filename;
+    allowedFields.image = req.file.filename;
   }
   await Currency.create(allowedFields);
 
@@ -104,7 +104,9 @@ exports.deleteCurrency = catchAsync(async (req, res, next) => {
     return next(new AppError("No currency found with that ID", 404));
   }
 
-  filesToDelete.push(currency.symbol);
+  await Wallet.deleteMany({ currencyId: currency._id });
+
+  filesToDelete.push(currency.image);
 
   req.fileNames = filesToDelete;
 
