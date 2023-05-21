@@ -480,7 +480,7 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
     await Referral.create({
       username: referral.username,
       referralUsername: user.username,
-      regDate: data.regDate,
+      regDate: user.regDate,
     });
   }
 

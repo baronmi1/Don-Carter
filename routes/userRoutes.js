@@ -40,7 +40,10 @@ router.route("/reset-password/:token").patch(authController.resetPassword);
 
 router.post(
   "/signup",
-  upload.upload.fields([{ name: "profilePicture" }, { name: "idPicture" }]),
+  upload.upload.fields([
+    { name: "profilePicture", maxCount: 1 },
+    { name: "documentFile", maxCount: 1 },
+  ]),
   authController.signup
 );
 
@@ -52,8 +55,8 @@ router
   .patch(
     // authController.protect,
     upload.upload.fields([
-      { name: "profilePicture" },
-      { name: "documentFile" },
+      { name: "profilePicture", maxCount: 1 },
+      { name: "documentFile", maxCount: 1 },
     ]),
     userController.editUser,
     deleteFile,

@@ -671,6 +671,7 @@ const startRunningDeposit = async (data, id, next) => {
     image: data.image,
     planPeriod: data.planPeriod,
     percent: data.percent,
+    referredBy: data.referredBy,
     walletName: data.walletName,
     walletId: data.walletId,
     planCycle: data.planCycle,
