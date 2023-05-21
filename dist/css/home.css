@@ -4596,7 +4596,7 @@ textarea.w-select {
 .passport-bg {
   width: 80px;
   height: 80px;
-  background-image: url("https://uploads-ssl.webflow.com/6458b19446eea345a074cdaf/64594d4cef5dff0b42a48986_testimonial-3.jpg");
+  background-image: url("../images/avatar.svg");
   background-position: 50%;
   background-size: cover;
   border-radius: 50%;

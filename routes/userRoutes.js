@@ -51,7 +51,10 @@ router
   .get(userController.getAUser)
   .patch(
     // authController.protect,
-    upload.upload.fields([{ name: "profilePicture" }, { name: "idPicture" }]),
+    upload.upload.fields([
+      { name: "profilePicture" },
+      { name: "documentFile" },
+    ]),
     userController.editUser,
     deleteFile,
     userController.getAllUsers

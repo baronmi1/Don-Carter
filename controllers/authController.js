@@ -167,26 +167,7 @@ exports.signup = catchAsync(async (req, res, next) => {
         }
       }
 
-      //----------CHECK FOR REFERRAL---------------
-      const referral = await User.findOne({ username: data.referredBy });
       const user = await User.create(data);
-
-      if (referral != null || referral != undefined) {
-        const form = {
-          username: user.username,
-          regDate: data.regDate,
-        };
-        referral.referrals.push(form);
-        await User.findByIdAndUpdate(referral._id, {
-          referrals: referral.referrals,
-          hasReferred: true,
-        });
-        await Referral.create({
-          username: referral.username,
-          referralUsername: user.username,
-          regDate: data.regDate,
-        });
-      }
 
       if (signup.email) {
         const email = await Email.findOne({
@@ -483,11 +464,25 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
 
   await Comment.create({ username: user.username });
 
-  // await Referral.create({
-  //   username: user.referredBy,
-  //   referralUsername: user.username,
-  //   regDate: user.regDate,
-  // });
+  const referral = await User.findOne({ username: user.referredBy });
+  if (referral != null || referral != undefined) {
+    const form = {
+      username: user.username,
+      regDate: user.regDate,
+    };
+
+    referral.referrals.push(form);
+    await User.findByIdAndUpdate(referral._id, {
+      referrals: referral.referrals,
+      hasReferred: true,
+    });
+
+    await Referral.create({
+      username: referral.username,
+      referralUsername: user.username,
+      regDate: data.regDate,
+    });
+  }
 
   const email = await Email.findOne({
     template: "registration-successful",
