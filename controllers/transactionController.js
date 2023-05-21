@@ -619,10 +619,27 @@ exports.continueEarnings = catchAsync(async (req, res, next) => {
 });
 
 exports.createPayment = catchAsync(async (req, res, next) => {
-  const { ipn_mode, ipn_type, ipn_id, status, custom } = req.body;
+  const {
+    ipn_version,
+    ipn_type,
+    merchant,
+    status,
+    status_text,
+    txn_id,
+    item_name,
+    amount1,
+    amount2,
+    currency1,
+    currency2,
+    custom,
+    ipn_id,
+  } = req.body;
 
-  if (status === "100") {
-    const transaction = await Transaction.findOne({ userID: custom });
+  if (Number(status) >= 100) {
+    const transaction = await Transaction.findOne({
+      userID: custom,
+      symbol: currency2,
+    });
     if (!transaction) {
       return next(new AppError("No record for this transaction", 404));
     }

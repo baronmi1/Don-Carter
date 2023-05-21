@@ -8,6 +8,14 @@ const commentSchema = new mongoose.Schema({
   country: String,
   flag: String,
   time: Number,
+  commented: {
+    type: Boolean,
+    default: false,
+  },
+  status: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const Comment = mongoose.model("Comment", commentSchema);

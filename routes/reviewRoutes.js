@@ -9,27 +9,27 @@ const router = express.Router();
 router
   .route("/")
   .post(
-    upload.upload.single("image"),
-    reviewController.createReview,
-    reviewController.getReview
+    upload.upload.single("profilePicture"),
+    reviewController.createComment,
+    reviewController.getComment
   )
-  .get(reviewController.getReview);
+  .get(reviewController.getComment);
 
 router
   .route("/:id")
   .patch(
     // authController.protect,
     upload.upload.single("image"),
-    reviewController.updateReview,
+    reviewController.updateComment,
     deleteFile,
-    reviewController.getReview
+    reviewController.getComment
   )
   .delete(
     // authController.protect,
     // authController.restrictTo("room"),
-    reviewController.deleteReview,
+    reviewController.deleteComment,
     deleteFile,
-    reviewController.getReview
+    reviewController.getComment
   );
 
 module.exports = router;

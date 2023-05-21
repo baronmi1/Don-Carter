@@ -462,7 +462,13 @@ exports.activateAUser = catchAsync(async (req, res, next) => {
     status: "User",
   });
 
-  await Comment.create({ username: user.username });
+  await Comment.create({
+    username: user.username,
+    country: user.country,
+    flag: user.countryFlag,
+    profilePicture: user.profilePicture,
+    commented: false,
+  });
 
   const referral = await User.findOne({ username: user.referredBy });
   if (referral != null || referral != undefined) {

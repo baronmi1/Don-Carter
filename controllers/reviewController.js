@@ -1,18 +1,18 @@
-const Review = require("../models/reviewModel");
+const Comment = require("../models/commentModel");
 const AppError = require("../utils/appError");
 const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
 
-exports.createReview = catchAsync(async (req, res, next) => {
+exports.createComment = catchAsync(async (req, res, next) => {
   if (req.file) {
-    req.body.image = req.file.filename;
+    req.body.profilePicture = req.file.filename;
   }
-  await Review.create(req.body);
+  await Comment.create(req.body);
   next();
 });
 
-exports.getReview = catchAsync(async (req, res) => {
-  const result = new APIFeatures(Review.find(), req.query)
+exports.getComment = catchAsync(async (req, res) => {
+  const result = new APIFeatures(Comment.find(), req.query)
     .filter()
     .sort()
     .limitFields();
@@ -21,40 +21,45 @@ exports.getReview = catchAsync(async (req, res) => {
 
   const features = result.paginate();
 
-  const review = await features.query.clone();
+  const comment = await features.query.clone();
 
   res.status(200).json({
     status: "success",
-    data: review,
+    data: comment,
     resultLength: resultLen.length,
   });
 });
 
-exports.updateReview = catchAsync(async (req, res, next) => {
+exports.updateComment = catchAsync(async (req, res, next) => {
   const filesToDelete = [];
   if (req.file) {
     req.body.image = req.file.filename;
-    const oldReview = await Review.findById(req.params.id);
-    filesToDelete.push(oldReview.image);
+    const oldComment = await Comment.findById(req.params.id);
+    filesToDelete.push(oldComment.image);
   }
-  await Review.findByIdAndUpdate(req.params.id, req.body, {
+
+  await Comment.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
     useFindAndModify: false,
   });
+
   req.fileNames = filesToDelete;
 
   next();
 });
 
-exports.deleteReview = catchAsync(async (req, res, next) => {
-  const review = await Review.findById(req.params.id);
+exports.deleteComment = catchAsync(async (req, res, next) => {
+  const filesToDelete = [];
 
-  await Review.findByIdAndDelete(req.params.id);
+  const comment = await Comment.findById(req.params.id);
 
-  if (!review) {
-    return next(new AppError("No Review found with that ID", 404));
+  await Comment.findByIdAndDelete(req.params.id);
+
+  if (!comment) {
+    return next(new AppError("No Comment found with that ID", 404));
   }
-
+  filesToDelete.push(comment.profilePicture);
+  req.fileNames = filesToDelete;
   next();
 });
