@@ -18,14 +18,14 @@ router
 router
   .route("/:id")
   .patch(
+    upload.upload.single("profilePicture"),
     // authController.protect,
-    upload.upload.single("image"),
     reviewController.updateComment,
     deleteFile,
     reviewController.getComment
   )
   .delete(
-    // authController.protect,
+    authController.protect,
     // authController.restrictTo("room"),
     reviewController.deleteComment,
     deleteFile,

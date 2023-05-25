@@ -33,9 +33,9 @@ exports.getComment = catchAsync(async (req, res) => {
 exports.updateComment = catchAsync(async (req, res, next) => {
   const filesToDelete = [];
   if (req.file) {
-    req.body.image = req.file.filename;
+    req.body.profilePicture = req.file.filename;
     const oldComment = await Comment.findById(req.params.id);
-    filesToDelete.push(oldComment.image);
+    filesToDelete.push(oldComment.profilePicture);
   }
 
   await Comment.findByIdAndUpdate(req.params.id, req.body, {

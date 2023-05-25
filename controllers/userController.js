@@ -201,9 +201,9 @@ exports.fetchUsers = (io, socket) => {
   socket.on("fetchUsers", async (item) => {
     const limit = item.limit;
     const users = await User.find({
-      username: { $regex: item.keyWord, $options: "$i" },
-      firstName: { $regex: item.keyWord, $options: "$i" },
+      username: { $regex: new RegExp(item.keyWord, "i") },
     }).limit(limit);
+
     io.emit("fetchedUsers", users);
   });
 };
