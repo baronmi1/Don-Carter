@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const termsSchema = new mongoose.Schema({
   heading: String,
-  body: String,
+  content: String,
   status: {
     type: Boolean,
     default: false,
