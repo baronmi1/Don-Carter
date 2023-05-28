@@ -7,6 +7,7 @@ const deleteFile = require("../utils/deleteFile");
 const router = express.Router();
 
 router.post("/send-email", emailController.sendEmail);
+router.post("/send-message", emailController.sendMessage);
 
 router
   .route("/")

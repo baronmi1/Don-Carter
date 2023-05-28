@@ -118,3 +118,42 @@ exports.sendEmail = catchAsync(async (req, res, next) => {
     status: "success",
   });
 });
+
+exports.sendMessage = catchAsync(async (req, res, next) => {
+  const data = req.body;
+
+  const company = await Company.findOne();
+  const resetURL = "";
+
+  const email = await Email.findOne({ template: `message` });
+  email.template = "message";
+  const banner = `${company.companyDomain}/uploads/${email.banner}`;
+  const content = data.message;
+
+  const sender = {
+    email: data.email,
+    username: data.name,
+  };
+
+  try {
+    new SendEmail(
+      company,
+      sender,
+      email,
+      banner,
+      content,
+      resetURL
+    ).sendEmail();
+  } catch (err) {
+    return next(
+      new AppError(
+        `There was an error sending the email. Try again later!, ${err}`,
+        500
+      )
+    );
+  }
+
+  res.status(200).json({
+    status: "success",
+  });
+});
