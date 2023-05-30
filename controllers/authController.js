@@ -288,6 +288,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
   const company = await Company.findOne();
   const email = await Email.findOne({ template: "reset-password" });
+
   if (!email) {
     return next(
       new AppError("Sorry, no email set for this operation yet!", 404)
@@ -296,33 +297,15 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
   const domainName = company.companyDomain;
   const resetURL = `${domainName}/reset-password/?token=${resetToken}`;
-  const from = company.systemEmail;
   const content = email.content.replace("{{username}}", `${user.username}`);
+  const banner = "";
 
   try {
-    // const banner = `${domainName}/uploads/${email.banner}`;
-    const banner = `http://5000/uploads/${email.banner}`;
-    new SendEmail(
-      company.companyName,
-      company.companyDomain,
-      from,
-      user,
-      email.template,
-      email.title,
-      banner,
-      content,
-      email.headerColor,
-      email.footerColor,
-      email.mainColor,
-      email.greeting,
-      email.warning,
-      resetURL
-    ).sendEmail();
+    new SendEmail(company, user, email, banner, content, resetURL).sendEmail();
   } catch (err) {
-    console.log(err);
     return next(
       new AppError(
-        `There was an error sending the email. Try again later!`,
+        `There was an error sending the email. Try again later!, ${err}`,
         500
       )
     );
