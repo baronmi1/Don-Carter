@@ -6,6 +6,7 @@ const Notification = require("../models/notificationModel");
 const Currency = require("../models/currencyModel");
 const Plan = require("../models/planModel");
 const Referral = require("../models/referralModel");
+const History = require("../models/historyModel");
 const Company = require("../models/companyModel");
 const AppError = require("../utils/appError");
 const User = require("../models/userModel");
@@ -99,7 +100,7 @@ exports.createTransaction = catchAsync(async (req, res, next) => {
       data.reinvest = true;
       data.status = true;
       data.online = wallet.online;
-      await Transaction.create(data);
+      await History.create(data);
 
       data.planDuration = data.planDuration * 24 * 60 * 60 * 1000;
       data.daysRemaining = data.planDuration;
@@ -440,6 +441,8 @@ const finishInterruptedActiveDeposit = async (
 
 exports.approveDeposit = catchAsync(async (req, res, next) => {
   req.body.status = true;
+  await Transaction.findByIdAndDelete(req.params.id);
+  await History.create(req.body);
 
   startRunningDeposit(req.body, req.params.id, "edit", next);
 
@@ -447,10 +450,9 @@ exports.approveDeposit = catchAsync(async (req, res, next) => {
 });
 
 exports.approveWithdrawal = catchAsync(async (req, res, next) => {
-  req.body.status = true;
-  const transaction = await Transaction.findByIdAndUpdate(req.params.id, {
-    status: true,
-  });
+  const transaction = await Transaction.findById(req.params.id);
+  await Transaction.findByIdAndDelete(req.params.id);
+  await History.create(req.body);
 
   const wallet = await Wallet.findById(transaction.walletId);
 
@@ -744,6 +746,9 @@ const startRunningDeposit = async (data, id, next) => {
       {
         $inc: {
           totalBalance: Number(
+            (activeDeposit.amount * percentResult.referralCommission) / 100
+          ),
+          commission: Number(
             (activeDeposit.amount * percentResult.referralCommission) / 100
           ),
         },

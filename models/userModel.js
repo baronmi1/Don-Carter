@@ -35,6 +35,11 @@ const userSchema = new mongoose.Schema({
     default: 0,
   },
 
+  commission: {
+    type: Number,
+    default: 0,
+  },
+
   password: {
     type: String,
     required: [true, "Please fill in your password"],
