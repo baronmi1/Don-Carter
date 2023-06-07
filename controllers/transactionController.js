@@ -621,6 +621,7 @@ exports.continueEarnings = catchAsync(async (req, res, next) => {
 });
 
 exports.createPayment = catchAsync(async (req, res, next) => {
+  console.log(req.body);
   const {
     ipn_version,
     ipn_type,
